@@ -1,0 +1,21 @@
+---
+title: "Hello everyone and welcome to my website!"
+---
+
+My name is **Vihan Raghuvanshi**. Here's a brief about my educational, professional background and how my skills can benefit your organization
+
+*Fun Fact: About 90% of the world’s data was created in between 2021-2023.* In today’s data-driven world, businesses need professionals who can bridge the gap between analytics and strategy. That's where I come in.
+
+
+I’m Vihan Raghuvanshi currently pursuing [Masters in Business Analytics](https://zicklin.baruch.cuny.edu/academic-programs/graduate/ms/masters-in-business-analytics/) at [Zicklin School of Business](https://zicklin.baruch.cuny.edu/). As an [MBA graduate](https://mbarecruit.degroote.mcmaster.ca/programs/co-op-program/) from [DeGroote School of business,McMaster University](https://degroote.mcmaster.ca/), I gained a solid foundation in business strategies. I have hands-on experience in CPG sector across APAC and Americas collaborating with industry leaders like P&G, Dyson, and McCormick. My technical expertise and cultural adaptability enable me to solve complex business problems while collaborating with international teams. In summary, with my expertise in data and business strategy, I can effectively deliver impactful solutions for your organization.
+
+For more information, please see my linkedin [here](https://www.linkedin.com/in/vihan-raghuvanshi/) or else feel free to reach out via [email](mailto:vihan.raghuvanshi@baruchmail.cuny.edu). Thank you.
+
+![](https://mbarecruit.degroote.mcmaster.ca/files/2023/08/Head-shot-copy_Vihan-Raghuvanshi-scaled-e1691500302131.jpeg)
+
+```{r}
+#| include: false
+1+1
+```
+--------------
+Last Updated: `r format(Sys.time(), "%A %m %d, %Y at %H:%M%p")`
