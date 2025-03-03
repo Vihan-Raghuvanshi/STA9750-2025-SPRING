@@ -585,7 +585,7 @@ The analysis reveals potential savings of approximately **$75 million over 10 ye
    - Verify data anomalies (e.g., DEP's projected $32M savings) before expanding
    - Conduct quarterly reviews to refine the model
 
-# **Policy III: Optimizing Manager-to-Staff Ratios**
+## **Policy III: Optimizing Manager-to-Staff Ratios**
 
 ### *Overview*
 
