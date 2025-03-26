@@ -13,6 +13,7 @@ website:
     
 format:
   html:
+    include-in-header: header.html
     theme: <zephyr>
     toc: false
 
