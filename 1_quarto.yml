@@ -1,0 +1,20 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "NYC Payroll Optimization Policies"
+  description:
+    Mini Project 01
+  site-url: "https://Vihan-Raghuvanshi.github.io/STA9750-2025-SPRING/"
+  navbar:
+    background: primary
+    search: false
+    
+format:
+  html:
+    theme: journal
+    toc: false
+
+editor:
+  mode: source
