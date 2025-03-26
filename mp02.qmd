@@ -16,7 +16,7 @@ format:
 required_packages <- c(
   "httr2", "jsonlite", "dplyr", "readr", "stringr",
   "ggplot2", "scales", "knitr", "kableExtra", "rvest",
-  "datasets", "purrr", "DT", "tidyverse", "lubridate", "plotly"
+  "datasets", "purrr", "DT", "tidyverse", "lubridate", "plotly", "DT"
 )
 
 # Install missing packages
