@@ -2,6 +2,7 @@
 title: "**National Transit Sustainability Report**"
 format: 
   html:
+    include-in-header: header.html
     toc: true         
     toc-location: right 
     toc-title: "On this page" 
@@ -16,7 +17,7 @@ format:
 required_packages <- c(
   "httr2", "jsonlite", "dplyr", "readr", "stringr",
   "ggplot2", "scales", "knitr", "kableExtra", "rvest",
-  "datasets", "purrr", "DT", "tidyverse", "lubridate", "plotly", "DT"
+  "datasets", "purrr", "DT", "tidyverse", "lubridate", "plotly"
 )
 
 # Install missing packages
