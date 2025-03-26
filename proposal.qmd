@@ -1,0 +1,63 @@
+# How Remote Work Impacts NYC Public Transit
+## Shubh, Devarshi, Vihan and Dhruv
+### March 13, 2025
+
+---
+
+# 🚆 Project Question
+
+*Has remote work reduced NYC transit ridership?*  
+
+- 📉 Fewer commuters → Lower MTA revenue  
+- 🏙 Changing work patterns → New transit needs  
+- 🚇 What adjustments should MTA make?  
+
+---
+
+# 📊 Data Sources  
+
+## *1. MTA Monthly Ridership Data*  
+- 📍 *Source:* [MTA Open Data](https://data.ny.gov/Transportation/MTA-Monthly-Ridership-Traffic-Data-Beginning-Janua/xfre-bxip/about_data)  
+- 🚆 Tracks subway, bus, LIRR, Metro-North trends  
+- 📅 Monthly station-level ridership  
+
+## *2. U.S. Census - Remote Work Data*  
+- 📍 *Source:* [ACS 5-Year Data](https://data.census.gov/table/ACSDT5Y2023.B08128?q=remote+worker&g=040XX00US36$8600000)  
+- 🏠 % of remote workers per ZIP code  
+- 💼 Industry shifts & commuting impact  
+
+---
+
+# 🔍 Research Questions  
+
+1️⃣ How much has *weekday subway ridership* declined since 2019?  
+2️⃣ Do *remote-heavy neighborhoods* have bigger ridership drops?  
+3️⃣ Which *subway lines & bus routes* lost the most passengers?  
+
+---
+
+# 📈 Analytical Plan  
+
+🗂 *Merge datasets*: MTA ridership 📉 + Census remote work 🏠  
+📊 *Compare trends*: 2019 vs. 2023 ridership changes  
+📍 *Find hotspots*: High remote work = Low transit use?  
+💰 *Revenue impact*: MTA losses & future projections  
+
+---
+
+# 🚨 Challenges  
+
+⚠ *MTA vs. Census Data* → Station vs. ZIP codes  
+⚠ *Other Factors* → Crime, fare hikes, transit delays  
+⚠ *Limited Work Data* → Gig workers & blue-collar jobs  
+
+---
+
+# ❓ Q&A & Team Members
+
+- *"Any Questions?"*  
+- *Team Members:*  
+  - Shubh 
+  - Devarshi 
+  - Vihan
+  - Dhruv

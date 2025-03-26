@@ -129,12 +129,14 @@ EIA_SEP_REPORT |>
   mutate(CO2_MWh = number(CO2_MWh, big.mark=","), 
          electricity_price_MWh = dollar(electricity_price_MWh), 
          generation_MWh = number(generation_MWh, big.mark=",")) |>
-  rename(`Pounds of CO2 Emitted per MWh of Electricity Produced` = CO2_MWh, 
-         `Primary Source of Electricity Generation` = primary_source, 
-         `Average Retail Price for 1000 kWh` = electricity_price_MWh, 
-         `Total Generation Capacity (MWh)` = generation_MWh, 
+  rename(`Pounds of CO2 Emitted per MWh` = CO2_MWh, 
+         `Primary Energy Source` = primary_source,
+         `Price per MWh` = electricity_price_MWh,
+         `Generation (MWh)` = generation_MWh,
          State = state) |>
- datatable(options = list(pageLength = 5))
+  kable(caption = "State Electricity Profiles") |>
+  kable_styling(bootstrap_options = c("striped", "hover")) |>
+  scroll_box(width = "100%", height = "400px")
 ```
 
 ## **Task-2 Data Exploring**
