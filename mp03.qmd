@@ -27,6 +27,8 @@ if(length(new_packages)) install.packages(new_packages)
 
 # Load all packages
 invisible(lapply(required_packages, library, character.only = TRUE))
+
+save_local_files <- FALSE
 ```
 ## **Executive Summary 🎧✨**
 I’m thrilled to introduce Power Paradox, my data‑fueled playlist that blends mega‑hits with hidden gems to explore themes of power, ambition, and resilience. I dove into clean Spotify song stats and mined over a million public playlists. Then I cooked up audio‑feature wizardry—adding co‑occurrence magic, artist/genre vibes, and keyword spice—to handcraft a 12‑track journey you’ll want on repeat.
@@ -376,11 +378,6 @@ playlist_data <- function(playlists) {
 # Apply the function to the playlists data from Task 2
 playlist_data <- playlist_data(playlists)
 
-# Save the rectangular data to a file for further use
-save_file_path <- file.path("data", "mp03", "playlist_data.rds")
-dir.create(dirname(save_file_path), showWarnings = FALSE, recursive = TRUE)
-saveRDS(playlist_data, save_file_path)
-message(paste("Rectangular playlist data saved to:", save_file_path))
 ```
 
 ## **Task -4 Exploring the Dataset**
@@ -1843,6 +1840,7 @@ I created FIVE different ways to find related songs! 🖐️ From playlist buddi
 {{< video https://www.youtube.com/watch?v=tvTRZJ-4EyI >}}
 
 {{< video https://www.youtube.com/watch?v=4NJlUribp3c >}}
+
 ### **Heuristic 1: Songs that appear on the same playlists**
 ```{r}
 #| code-fold: true
