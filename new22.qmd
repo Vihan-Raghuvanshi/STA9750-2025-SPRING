@@ -1,0 +1,34 @@
+---
+title: "new"
+format: revealjs
+---
+
+## Quarto
+
+``` {r}
+if(!require("tidyverse")) install.packages("tidyverse")
+library(tidyverse)
+txhousing |> filter(city=="Houston") |> 
+             group_by(year) |> 
+             summarize(sales=sum(sales)) |> 
+             ggplot(aes(x=year, y=sales)) + 
+                geom_line() + 
+                ggtitle("Annual Houses Sold in Houston, TX")
+```
+
+## Bullets
+
+When you click the **Render** button a document will be generated that includes:
+
+-   Content authored with markdown
+-   Output from executable code
+
+## Code
+
+When you click the **Render** button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+
