@@ -1,0 +1,1581 @@
+---
+title: "**The Great American Realignment**"
+format: 
+  html:
+    include-in-header: header.html
+    toc: true         
+    toc-location: right 
+    toc-title: "On this page" 
+---
+
+```{r setup, include=FALSE}
+#| code-fold: true
+#| warning: false
+#| message: false
+
+# First set a CRAN mirror before attempting to install packages
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+
+# Load required packages - simplified version
+required_packages <- c(
+  "dplyr", "tidyr", "stringr", "jsonlite", "httr", "purrr", 
+  "ggplot2", "lubridate", "scales", "ggpubr", "viridis", 
+  "gridExtra", "cowplot", "plotly", "proxy", "igraph", 
+  "patchwork", "ggforce", "knitr", "kableExtra", "data.table", "sf", "tigris", "waffle", 
+  "ggridges", "viridis"
+)
+
+# Install missing packages with error handling
+new_packages <- required_packages[!required_packages %in% installed.packages()[,"Package"]]
+if(length(new_packages)) {
+  install_result <- tryCatch({
+    install.packages(new_packages)
+    TRUE
+  }, error = function(e) {
+    message("Error installing packages: ", e$message)
+    FALSE
+  })
+  
+  # Verify all packages installed correctly
+  still_missing <- new_packages[!new_packages %in% installed.packages()[,"Package"]]
+  if(length(still_missing) > 0) {
+    warning("The following packages could not be installed: ", 
+            paste(still_missing, collapse = ", "), 
+            ". Please install them manually.")
+  }
+}
+
+# Load all packages with error handling
+successfully_loaded <- sapply(required_packages, function(pkg) {
+  tryCatch({
+    library(pkg, character.only = TRUE)
+    TRUE
+  }, error = function(e) {
+    warning("Could not load package: ", pkg, " - ", e$message)
+    FALSE
+  })
+})
+
+
+```
+
+🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸
+
+# **The Red Tsunami: Zicklin News Reporting live!**
+
+🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸🇺🇸
+
+
+Good evening, America. I'm Vihan Raghuvanshi with a special report that's shaking the world tonight. 😯
+The numbers don't lie, folks. Our exclusive analysis of county-by-county data reveals what some are calling the "Great Republican Tsunami" of 2024. 🌊
+
+The shift is unprecedented. Over 70% of counties moved rightward. Let me repeat that - SEVENTY percent! 🤯
+
+But here's what has political scientists stunned tonight - Hispanic communities led the charge! These traditionally Democratic strongholds showed DOUBLE the rightward shift of other areas.
+
+And forget everything you thought you knew about urban America. Cities that were once liberal bastions showed remarkable Republican gains. 🏙️
+
+
+The Data Anaytics panel beneath is standing by to debate what might be the biggest political story of our generation. But first, these messages... 💭
+
+{{< video https://www.youtube.com/watch?v=uTRwjD10dKY >}}
+
+
+# **Task-1: US County Shapefiles**
+
+The foundation of democracy is data. Task 1 meticulously downloads the most detailed county boundary files from the U.S. Census Bureau, creating a digital canvas where America's voice will be displayed. These county-by-county boundaries form the geographic backbone of our analysis, allowing us to see how every community across our great nation voted.
+
+```{r}
+#| code-fold: true
+#| warning: false
+#| message: false
+
+
+# Add this at the beginning for web scraping
+if (!require("rvest")) {
+  install.packages("rvest")
+  library(rvest)
+}
+if (!require("httr2")) {
+  install.packages("httr2")
+  library(httr2)
+}
+
+# Create data directory if it doesn't exist
+data_dir <- "data/mp04"
+if (!dir.exists(data_dir)) {
+  dir.create(data_dir, recursive = TRUE)
+  message("Created directory: ", data_dir)
+} else {
+  message("Directory already exists: ", data_dir)
+}
+
+# Define the base URL and file details
+# We'll start with the highest resolution (500k) and fall back to coarser if needed
+base_url <- "https://www2.census.gov/geo/tiger/GENZ2024/shp/"
+
+# The possible resolutions, from most detailed to least
+resolutions <- c("500k", "5m", "20m")
+resolution_index <- 1  # Start with the highest resolution
+
+# Check each resolution until one works
+success <- FALSE
+while (!success && resolution_index <= length(resolutions)) {
+  current_resolution <- resolutions[resolution_index]
+  
+  # Current file to download
+  filename <- paste0("cb_2024_us_county_", current_resolution, ".zip")
+  local_file <- file.path(data_dir, filename)
+  url <- paste0(base_url, filename)
+  
+  # Check if file already exists locally
+  if (file.exists(local_file)) {
+    message("File already exists: ", local_file)
+    success <- TRUE
+  } else {
+    # Try to download the file
+    message("Attempting to download file from: ", url)
+    
+    download_result <- tryCatch({
+      download.file(url, local_file, mode = "wb")
+      TRUE
+    }, error = function(e) {
+      message("Download failed: ", e$message)
+      FALSE
+    })
+    
+    if (download_result) {
+      message("Download successful: ", local_file)
+      success <- TRUE
+      
+      # Unzip the file
+      unzip(local_file, exdir = file.path(data_dir, paste0("county_", current_resolution)))
+      message("File extracted to: ", file.path(data_dir, paste0("county_", current_resolution)))
+    } else {
+      # Try the next resolution
+      resolution_index <- resolution_index + 1
+      if (resolution_index <= length(resolutions)) {
+        message("Trying lower resolution: ", resolutions[resolution_index])
+      } else {
+        message("All resolution downloads failed.")
+      }
+    }
+  }
+}
+
+```
+
+# **Task-2: 2024 Election Data Processing**
+The people have spoken! Task 2 systematically harvests county-level results from the historic 2024 election, transforming raw Wikipedia data into a clear picture of America's choice. This sophisticated data extraction reveals county by county how Americans voted for President Trump and Vice President Harris, creating a comprehensive dataset that tells the story of a nation ready for change.
+
+```{r}
+#| code-fold: true
+#| warning: false
+#| message: false
+# Function to fetch election data from Wikipedia
+get_election_results <- function(state) {
+  # Special case for Alaska
+  if(state == "Alaska") {
+    url <- "https://en.wikipedia.org/wiki/2024_United_States_presidential_election_in_Alaska"
+  } else {
+    # Format state name for URL
+    state_formatted <- str_replace_all(state, "\\s", "_")
+    url <- paste0("https://en.wikipedia.org/wiki/2024_United_States_presidential_election_in_", state_formatted)
+  }
+  
+  # Create directory for storing data
+  dir_name <- file.path("data", "election2024")
+  file_name <- file.path(dir_name, paste0(gsub("\\s", "_", state), ".html"))
+  dir.create(dir_name, showWarnings = FALSE, recursive = TRUE)
+  
+  # Download data if not cached
+  if (!file.exists(file_name)) {
+    tryCatch({
+      RESPONSE <- req_perform(request(url))
+      writeLines(resp_body_string(RESPONSE), file_name)
+    }, error = function(e) {
+      warning(paste("Error fetching data for", state, ":", e$message))
+      return(NULL)
+    })
+  }
+  
+  # Exit if file doesn't exist
+  if (!file.exists(file_name)) return(NULL)
+  
+  # Parse HTML
+  page <- tryCatch(read_html(file_name), error = function(e) NULL)
+  if (is.null(page)) return(NULL)
+  
+  # Extract tables
+  tables <- tryCatch(page |> html_elements("table.wikitable") |> 
+                       html_table(na.strings = c("", "N/A", "—")), 
+                     error = function(e) list())
+  
+  if (length(tables) == 0) return(NULL)
+  
+  # Find county results table
+  county_table <- NULL
+  
+  # Look for county column names
+  for (i in seq_along(tables)) {
+    if (ncol(tables[[i]]) < 3) next
+    
+    col_names <- colnames(tables[[i]])
+    if (is.null(col_names) || any(is.na(col_names))) next
+    
+    # Look for county identifiers in column names
+    if (any(str_detect(col_names, regex("County|Parish|Borough|Census Area|Municipality", ignore_case = TRUE)))) {
+      county_table <- tables[[i]]
+      break
+    }
+  }
+  
+  # Check for county values in first column
+  if (is.null(county_table)) {
+    for (i in seq_along(tables)) {
+      if (ncol(tables[[i]]) < 3 || nrow(tables[[i]]) == 0 || is.null(tables[[i]][[1]])) next
+      
+      first_col <- tables[[i]][[1]]
+      first_col_clean <- first_col[!is.na(first_col)]
+      
+      if (length(first_col_clean) > 0 && 
+          any(str_detect(as.character(first_col_clean), 
+                         regex("County|Parish|Borough|Census Area", ignore_case = TRUE)))) {
+        county_table <- tables[[i]]
+        break
+      }
+    }
+  }
+  
+  # Look for candidate names
+  if (is.null(county_table)) {
+    for (i in seq_along(tables)) {
+      if (ncol(tables[[i]]) < 3) next
+      
+      # Check column names
+      col_names <- colnames(tables[[i]])
+      if (!is.null(col_names) && !any(is.na(col_names)) &&
+          any(str_detect(col_names, regex("Trump|Harris|Republican|Democrat", ignore_case = TRUE)))) {
+        county_table <- tables[[i]]
+        break
+      }
+    }
+  }
+  
+  # Last resort - largest table
+  if (is.null(county_table) && length(tables) > 0) {
+    valid_tables <- tables[sapply(tables, function(t) ncol(t) >= 3 && nrow(t) >= 3)]
+    if (length(valid_tables) > 0) {
+      county_table <- valid_tables[[which.max(sapply(valid_tables, nrow))]]
+    }
+  }
+  
+  if (is.null(county_table)) return(NULL)
+  
+  # Format table
+  result <- tryCatch({
+    # Find county column
+    county_col <- which(str_detect(colnames(county_table), 
+                                   regex("County|Parish|Borough|Census Area|Municipality|District", ignore_case = TRUE)))
+    county_col <- if(length(county_col) > 0) county_col[1] else 1
+    
+    result <- county_table
+    names(result)[county_col] <- "County"
+    result$State <- state
+    
+    return(result)
+  }, error = function(e) NULL)
+  
+  return(result)
+}
+
+# Function to standardize election data
+standardize_election_data <- function(df, state) {
+  if (is.null(df) || nrow(df) == 0) return(NULL)
+  
+  # Extract numeric values from string
+  extract_numeric <- function(values) {
+    if (is.null(values)) return(rep(NA, nrow(df)))
+    chars <- as.character(values)
+    chars <- gsub(",|%|\\s", "", chars)
+    suppressWarnings(as.numeric(chars))
+  }
+  
+  # Find candidate columns
+  find_candidate_columns <- function(candidate, df_names) {
+    cols <- which(str_detect(df_names, regex(candidate, ignore_case = TRUE)))
+    if (length(cols) >= 2) {
+      vote_col <- NULL
+      pct_col <- NULL
+      
+      for (col in cols) {
+        col_name <- df_names[col]
+        if (str_detect(col_name, regex("%|percent", ignore_case = TRUE))) {
+          pct_col <- col
+        } else if (str_detect(col_name, regex("votes|#", ignore_case = TRUE))) {
+          vote_col <- col
+        }
+      }
+      
+      if (is.null(vote_col) && length(cols) >= 1) vote_col <- cols[1]
+      if (is.null(pct_col) && length(cols) >= 2) pct_col <- cols[2]
+      
+      return(list(vote_col = vote_col, pct_col = pct_col))
+    } else if (length(cols) == 1) {
+      return(list(vote_col = cols[1], pct_col = NULL))
+    } else {
+      return(list(vote_col = NULL, pct_col = NULL))
+    }
+  }
+  
+  # Ensure County column
+  if (!"County" %in% names(df)) {
+    county_col <- which(str_detect(names(df), 
+                                   regex("County|Parish|Borough|Census Area|Municipality|District|City", ignore_case = TRUE)))
+    if (length(county_col) > 0) {
+      names(df)[county_col[1]] <- "County"
+    } else {
+      names(df)[1] <- "County"
+    }
+  }
+  
+  # Find candidate and total columns
+  trump_cols <- find_candidate_columns("Trump|Republican", names(df))
+  harris_cols <- find_candidate_columns("Harris|Democratic|Democrat", names(df))
+  other_cols <- find_candidate_columns("Other|Independent|Third", names(df))
+  total_col <- which(str_detect(names(df), regex("Total|Sum|Cast", ignore_case = TRUE)))
+  total_col <- if (length(total_col) > 0) total_col[length(total_col)] else NULL
+  
+  # Create standardized dataframe
+  result <- data.frame(
+    County = df$County,
+    State = state,
+    Trump_Votes = if (!is.null(trump_cols$vote_col)) extract_numeric(df[[trump_cols$vote_col]]) else NA,
+    Trump_Percent = if (!is.null(trump_cols$pct_col)) extract_numeric(df[[trump_cols$pct_col]]) else NA,
+    Harris_Votes = if (!is.null(harris_cols$vote_col)) extract_numeric(df[[harris_cols$vote_col]]) else NA,
+    Harris_Percent = if (!is.null(harris_cols$pct_col)) extract_numeric(df[[harris_cols$pct_col]]) else NA,
+    Other_Votes = if (!is.null(other_cols$vote_col)) extract_numeric(df[[other_cols$vote_col]]) else NA,
+    Other_Percent = if (!is.null(other_cols$pct_col)) extract_numeric(df[[other_cols$pct_col]]) else NA,
+    Total_Votes = if (!is.null(total_col)) extract_numeric(df[[total_col]]) else 
+      rowSums(cbind(
+        if (!is.null(trump_cols$vote_col)) extract_numeric(df[[trump_cols$vote_col]]) else 0,
+        if (!is.null(harris_cols$vote_col)) extract_numeric(df[[harris_cols$vote_col]]) else 0,
+        if (!is.null(other_cols$vote_col)) extract_numeric(df[[other_cols$vote_col]]) else 0
+      ), na.rm = TRUE),
+    stringsAsFactors = FALSE
+  )
+  
+  return(result)
+}
+
+# Process all states
+process_election_data <- function() {
+  states <- state.name
+  all_data <- list()
+  
+  for (state in states) {
+    
+    raw_data <- get_election_results(state)
+    
+    if (!is.null(raw_data)) {
+      std_data <- standardize_election_data(raw_data, state)
+      
+      if (!is.null(std_data) && nrow(std_data) > 0) {
+        all_data[[state]] <- std_data
+      }
+    }
+  }
+  
+  # Combine all data
+  combined_data <- do.call(rbind, all_data)
+  
+  # Clean data - remove problematic rows
+  clean_data <- combined_data %>%
+    filter(
+      !is.na(Trump_Votes) & !is.na(Harris_Votes) & 
+        !str_detect(County, regex("^County$|^County\\[|^Total", ignore_case = TRUE))
+    ) %>%
+    mutate(County = gsub("\\[\\d+\\]", "", County),
+           County = trimws(County))
+  
+  # Save results
+  write.csv(clean_data, "data/election_results_2024.csv", row.names = FALSE)
+  
+  # Create summary by state
+  state_summary <- clean_data %>%
+    group_by(State) %>%
+    summarize(
+      Counties = n(),
+      Trump_Total = sum(Trump_Votes, na.rm = TRUE),
+      Harris_Total = sum(Harris_Votes, na.rm = TRUE),
+      Other_Total = sum(Other_Votes, na.rm = TRUE),
+      Total_Votes = sum(Total_Votes, na.rm = TRUE),
+      Trump_Pct = Trump_Total / Total_Votes * 100,
+      Harris_Pct = Harris_Total / Total_Votes * 100
+    ) %>%
+    arrange(desc(Total_Votes))
+  
+  write.csv(state_summary, "data/election_results_2024_summary.csv", row.names = FALSE)
+  
+  return(state_summary)
+}
+
+# Run the process and display results
+election_summary <- process_election_data()
+
+# Format the percentages for better display
+election_table <- election_summary %>%
+  mutate(
+    Trump_Pct = sprintf("%.1f%%", Trump_Pct),
+    Harris_Pct = sprintf("%.1f%%", Harris_Pct),
+    Winner = ifelse(Trump_Total > Harris_Total, "Trump", "Harris"),
+    Margin = paste0(
+      ifelse(Trump_Total > Harris_Total, Trump_Pct, Harris_Pct), " - ",
+      ifelse(Trump_Total > Harris_Total, Harris_Pct, Trump_Pct)
+    )
+  ) %>%
+  select(State, Counties, Total_Votes, Winner, Margin, Trump_Pct, Harris_Pct)
+
+# USA flag colors
+old_glory_blue <- "#3C3B6E"  # Dark blue from the US flag
+old_glory_red <- "#B22234"   # Red from the US flag
+white <- "#FFFFFF"
+
+# Create kable table with USA flag colors
+election_table %>%
+  kable("html", escape = FALSE, 
+        col.names = c("State", "Counties", "Total Votes", "Winner", "Margin", 
+                      "Trump %", "Harris %")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE) %>%
+  row_spec(0, background = old_glory_blue, color = white, bold = TRUE) %>%  # Blue header
+  row_spec(seq(1, nrow(election_table), by = 2), background = old_glory_red, color = white) %>%  # Red rows
+  row_spec(seq(2, nrow(election_table), by = 2), background = white, color = old_glory_blue) %>%  # White rows
+  column_spec(1, bold = TRUE) %>%  # State names in bold
+  column_spec(4, color = ifelse(election_table$Winner == "Trump", old_glory_red, old_glory_blue),
+              bold = TRUE) %>%  # Color winners according to party
+  column_spec(6, color = old_glory_red, bold = TRUE) %>%  # Trump percentage in red
+  column_spec(7, color = old_glory_blue, bold = TRUE)     # Harris percentage in blue
+```
+
+# **Task -3: 2020 Election Data Processing**
+To understand the magnitude of change, we must understand our past. Task 3 mirrors the previous process but for the 2020 election, creating a parallel dataset that allows for direct comparison. This meticulous data collection shows county-level results between Trump and Biden, establishing the baseline against which America's rightward shift can be measured.
+
+```{r}
+#| code-fold: true
+#| warning: false
+#| message: false
+if (!require("rvest")) {
+  install.packages("rvest")
+  library(rvest)
+}
+if (!require("httr2")) {
+  install.packages("httr2")
+  library(httr2)
+}
+
+# Function to fetch 2020 election data from Wikipedia
+get_2020_election_results <- function(state) {
+  # Format state name for URL
+  state_formatted <- str_replace_all(state, "\\s", "_")
+  url <- paste0("https://en.wikipedia.org/wiki/2020_United_States_presidential_election_in_", state_formatted)
+  
+  # Create directory for storing data
+  dir_name <- file.path("data", "election2020")
+  file_name <- file.path(dir_name, paste0(gsub("\\s", "_", state), ".html"))
+  dir.create(dir_name, showWarnings = FALSE, recursive = TRUE)
+  
+  # Download data if not cached
+  if (!file.exists(file_name)) {
+    tryCatch({
+      RESPONSE <- req_perform(request(url))
+      writeLines(resp_body_string(RESPONSE), file_name)
+     
+    }, error = function(e) {
+      warning(paste("Error fetching 2020 data for", state, ":", e$message))
+      return(NULL)
+    })
+  } else {
+    
+  }
+  
+  # Exit if file doesn't exist
+  if (!file.exists(file_name)) return(NULL)
+  
+  # Parse HTML
+  page <- tryCatch(read_html(file_name), error = function(e) NULL)
+  if (is.null(page)) return(NULL)
+  
+  # Extract tables
+  tables <- tryCatch(page |> html_elements("table.wikitable") |> 
+                       html_table(na.strings = c("", "N/A", "—")), 
+                     error = function(e) list())
+  
+  if (length(tables) == 0) return(NULL)
+  
+  # Find county results table
+  county_table <- NULL
+  
+  # Look for county column names
+  for (i in seq_along(tables)) {
+    if (ncol(tables[[i]]) < 3) next
+    
+    col_names <- colnames(tables[[i]])
+    if (is.null(col_names) || any(is.na(col_names))) next
+    
+    # Look for county identifiers in column names
+    if (any(str_detect(col_names, regex("County|Parish|Borough|Census Area|Municipality", ignore_case = TRUE)))) {
+      county_table <- tables[[i]]
+      break
+    }
+  }
+  
+  # Check for county values in first column
+  if (is.null(county_table)) {
+    for (i in seq_along(tables)) {
+      if (ncol(tables[[i]]) < 3 || nrow(tables[[i]]) == 0 || is.null(tables[[i]][[1]])) next
+      
+      first_col <- tables[[i]][[1]]
+      first_col_clean <- first_col[!is.na(first_col)]
+      
+      if (length(first_col_clean) > 0 && 
+          any(str_detect(as.character(first_col_clean), 
+                         regex("County|Parish|Borough|Census Area", ignore_case = TRUE)))) {
+        county_table <- tables[[i]]
+        break
+      }
+    }
+  }
+  
+  # Look for candidate names for 2020 election (Trump vs Biden)
+  if (is.null(county_table)) {
+    for (i in seq_along(tables)) {
+      if (ncol(tables[[i]]) < 3) next
+      
+      # Check column names
+      col_names <- colnames(tables[[i]])
+      if (!is.null(col_names) && !any(is.na(col_names)) &&
+          any(str_detect(col_names, regex("Trump|Biden|Republican|Democrat", ignore_case = TRUE)))) {
+        county_table <- tables[[i]]
+        break
+      }
+      
+      # Check first few rows for candidates
+      if (nrow(tables[[i]]) > 2) {
+        first_rows_char <- lapply(tables[[i]][1:min(5, nrow(tables[[i]])),], function(x) {
+          ifelse(is.na(x), NA_character_, as.character(x))
+        })
+        
+        found_candidates <- FALSE
+        for (j in 1:length(first_rows_char)) {
+          col_values <- first_rows_char[[j]]
+          col_values <- col_values[!is.na(col_values)]
+          
+          if (length(col_values) > 0 &&
+              any(str_detect(col_values, regex("Trump|Republican", ignore_case = TRUE))) && 
+              any(str_detect(col_values, regex("Biden|Democratic|Democrat", ignore_case = TRUE)))) {
+            county_table <- tables[[i]]
+            found_candidates <- TRUE
+            break
+          }
+        }
+        if (found_candidates) break
+      }
+    }
+  }
+  
+  # Last resort - largest table
+  if (is.null(county_table) && length(tables) > 0) {
+    valid_tables <- tables[sapply(tables, function(t) ncol(t) >= 3 && nrow(t) >= 3)]
+    if (length(valid_tables) > 0) {
+      county_table <- valid_tables[[which.max(sapply(valid_tables, nrow))]]
+    }
+  }
+  
+  if (is.null(county_table)) return(NULL)
+  
+  # Format table
+  result <- tryCatch({
+    # Find county column
+    county_col <- which(str_detect(colnames(county_table), 
+                                   regex("County|Parish|Borough|Census Area|Municipality|District", ignore_case = TRUE)))
+    county_col <- if(length(county_col) > 0) county_col[1] else 1
+    
+    result <- county_table
+    names(result)[county_col] <- "County"
+    result$State <- state
+    
+    return(result)
+  }, error = function(e) NULL)
+  
+  return(result)
+}
+
+# Function to standardize 2020 election data
+standardize_2020_election_data <- function(df, state) {
+  if (is.null(df) || nrow(df) == 0) return(NULL)
+  
+  # Extract numeric values from string
+  extract_numeric <- function(values) {
+    if (is.null(values)) return(rep(NA, nrow(df)))
+    chars <- as.character(values)
+    chars <- gsub(",|%|\\s", "", chars)
+    suppressWarnings(as.numeric(chars))
+  }
+  
+  # Find candidate columns - specific to 2020 election (Trump vs Biden)
+  find_candidate_columns <- function(candidate, df_names) {
+    cols <- which(str_detect(df_names, regex(candidate, ignore_case = TRUE)))
+    if (length(cols) >= 2) {
+      vote_col <- NULL
+      pct_col <- NULL
+      
+      for (col in cols) {
+        col_name <- df_names[col]
+        if (str_detect(col_name, regex("%|percent", ignore_case = TRUE))) {
+          pct_col <- col
+        } else if (str_detect(col_name, regex("votes|#", ignore_case = TRUE))) {
+          vote_col <- col
+        }
+      }
+      
+      if (is.null(vote_col) && length(cols) >= 1) vote_col <- cols[1]
+      if (is.null(pct_col) && length(cols) >= 2) pct_col <- cols[2]
+      
+      return(list(vote_col = vote_col, pct_col = pct_col))
+    } else if (length(cols) == 1) {
+      return(list(vote_col = cols[1], pct_col = NULL))
+    } else {
+      return(list(vote_col = NULL, pct_col = NULL))
+    }
+  }
+  
+  # Ensure County column
+  if (!"County" %in% names(df)) {
+    county_col <- which(str_detect(names(df), 
+                                   regex("County|Parish|Borough|Census Area|Municipality|District|City", ignore_case = TRUE)))
+    if (length(county_col) > 0) {
+      names(df)[county_col[1]] <- "County"
+    } else {
+      names(df)[1] <- "County"
+    }
+  }
+  
+  # Find candidate and total columns for 2020 (Trump vs Biden)
+  trump_cols <- find_candidate_columns("Trump|Republican", names(df))
+  biden_cols <- find_candidate_columns("Biden|Democratic|Democrat", names(df))
+  other_cols <- find_candidate_columns("Other|Independent|Third|Jorgensen|Hawkins", names(df))
+  total_col <- which(str_detect(names(df), regex("Total|Sum|Cast", ignore_case = TRUE)))
+  total_col <- if (length(total_col) > 0) total_col[length(total_col)] else NULL
+  
+  # Create standardized dataframe
+  result <- data.frame(
+    County = df$County,
+    State = state,
+    Trump_Votes = if (!is.null(trump_cols$vote_col)) extract_numeric(df[[trump_cols$vote_col]]) else NA,
+    Trump_Percent = if (!is.null(trump_cols$pct_col)) extract_numeric(df[[trump_cols$pct_col]]) else NA,
+    Biden_Votes = if (!is.null(biden_cols$vote_col)) extract_numeric(df[[biden_cols$vote_col]]) else NA,
+    Biden_Percent = if (!is.null(biden_cols$pct_col)) extract_numeric(df[[biden_cols$pct_col]]) else NA,
+    Other_Votes = if (!is.null(other_cols$vote_col)) extract_numeric(df[[other_cols$vote_col]]) else NA,
+    Other_Percent = if (!is.null(other_cols$pct_col)) extract_numeric(df[[other_cols$pct_col]]) else NA,
+    Total_Votes = if (!is.null(total_col)) extract_numeric(df[[total_col]]) else 
+      rowSums(cbind(
+        if (!is.null(trump_cols$vote_col)) extract_numeric(df[[trump_cols$vote_col]]) else 0,
+        if (!is.null(biden_cols$vote_col)) extract_numeric(df[[biden_cols$vote_col]]) else 0,
+        if (!is.null(other_cols$vote_col)) extract_numeric(df[[other_cols$vote_col]]) else 0
+      ), na.rm = TRUE),
+    stringsAsFactors = FALSE
+  )
+  
+  return(result)
+}
+
+# Process all states for 2020 election
+process_2020_election_data <- function() {
+  states <- state.name
+  all_data <- list()
+  
+  for (state in states) {
+
+    raw_data <- get_2020_election_results(state)
+    
+    if (!is.null(raw_data)) {
+      std_data <- standardize_2020_election_data(raw_data, state)
+      
+      if (!is.null(std_data) && nrow(std_data) > 0) {
+        all_data[[state]] <- std_data
+      }
+    }
+  }
+  
+  # Combine all data
+  combined_data <- do.call(rbind, all_data)
+  
+  # Clean data - remove problematic rows
+  clean_data <- combined_data %>%
+    filter(
+      !is.na(Trump_Votes) & !is.na(Biden_Votes) & 
+        !str_detect(County, regex("^County$|^County\\[|^Total", ignore_case = TRUE))
+    ) %>%
+    mutate(County = gsub("\\[\\d+\\]", "", County),
+           County = trimws(County))
+  
+  # Save results
+  write.csv(clean_data, "data/election_results_2020.csv", row.names = FALSE)
+  
+  # Create summary by state
+  state_summary <- clean_data %>%
+    group_by(State) %>%
+    summarize(
+      Counties = n(),
+      Trump_Total = sum(Trump_Votes, na.rm = TRUE),
+      Biden_Total = sum(Biden_Votes, na.rm = TRUE),
+      Other_Total = sum(Other_Votes, na.rm = TRUE),
+      Total_Votes = sum(Total_Votes, na.rm = TRUE),
+      Trump_Pct = Trump_Total / Total_Votes * 100,
+      Biden_Pct = Biden_Total / Total_Votes * 100
+    ) %>%
+    arrange(desc(Total_Votes))
+  
+  write.csv(state_summary, "data/election_results_2020_summary.csv", row.names = FALSE)
+  
+  # Create national summary
+  national_summary <- clean_data %>%
+    summarize(
+      Total_Counties = n(),
+      Trump_Total = sum(Trump_Votes, na.rm = TRUE),
+      Biden_Total = sum(Biden_Votes, na.rm = TRUE),
+      Other_Total = sum(Other_Votes, na.rm = TRUE),
+      Total_Votes = sum(Total_Votes, na.rm = TRUE),
+      Trump_Pct = Trump_Total / Total_Votes * 100,
+      Biden_Pct = Biden_Total / Total_Votes * 100
+    )
+  
+  write.csv(national_summary, "data/election_results_2020_national.csv", row.names = FALSE)
+  
+  return(list(state_summary = state_summary, national_summary = national_summary))
+}
+
+# Run the process for 2020 data
+election_results_2020 <- process_2020_election_data()
+election_table_2020 <- election_results_2020$state_summary %>%
+  mutate(
+    Trump_Pct = sprintf("%.1f%%", Trump_Pct),
+    Biden_Pct = sprintf("%.1f%%", Biden_Pct),
+    Winner = ifelse(Trump_Total > Biden_Total, "Trump", "Biden"),
+    Margin = paste0(
+      ifelse(Trump_Total > Biden_Total, Trump_Pct, Biden_Pct), " - ",
+      ifelse(Trump_Total > Biden_Total, Biden_Pct, Trump_Pct)
+    )
+  ) %>%
+  select(State, Counties, Total_Votes, Winner, Margin, Trump_Pct, Biden_Pct)
+
+# USA flag colors
+old_glory_blue <- "#3C3B6E"  # Dark blue from the US flag
+old_glory_red <- "#B22234"   # Red from the US flag
+white <- "#FFFFFF"
+
+# Create kable table with USA flag colors
+election_table_2020 %>%
+  kable("html", escape = FALSE, 
+        col.names = c("State", "Counties", "Total Votes", "Winner", "Margin", 
+                      "Trump %", "Biden %")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE) %>%
+  row_spec(0, background = old_glory_blue, color = white, bold = TRUE) %>%  # Blue header
+  row_spec(seq(1, nrow(election_table_2020), by = 2), background = old_glory_red, color = white) %>%  # Red rows
+  row_spec(seq(2, nrow(election_table_2020), by = 2), background = white, color = old_glory_blue) %>%  # White rows
+  column_spec(1, bold = TRUE) %>%  # State names in bold
+  column_spec(4, color = ifelse(election_table_2020$Winner == "Trump", old_glory_red, old_glory_blue),
+              bold = TRUE) %>%  # Color winners according to party
+  column_spec(6, color = old_glory_red, bold = TRUE) %>%  # Trump percentage in red
+  column_spec(7, color = old_glory_blue, bold = TRUE)     # Biden percentage in blue
+```
+
+
+# **Task-4 2024 & 2020 Election results combined for Analysis**
+
+```{r}
+#| code-fold: true
+#| warning: false
+#| message: false
+combine_election_data <- function() {
+  # Load county shapefile from Task-1
+  data_dir <- "data/mp04"
+  shp_dirs <- list.dirs(data_dir, recursive = FALSE)
+  county_dir <- shp_dirs[grep("county", shp_dirs)]
+  
+  if (length(county_dir) == 0) {
+    stop("County shapefile directory not found. Run Task-1 first.")
+  }
+  
+  # Find shapefile in the directory
+  shp_files <- list.files(county_dir, pattern = "\\.shp$", full.names = TRUE)
+  
+  # Add quiet=TRUE to suppress messages
+  counties_sf <- sf::st_read(shp_files[1], quiet = TRUE)
+  
+  # Load election data from Task-2 and Task-3
+  election_2020 <- read.csv("data/election_results_2020.csv")
+  election_2024 <- read.csv("data/election_results_2024.csv")
+  
+  # Prepare county shapefile for joining
+  counties_sf <- counties_sf %>%
+    mutate(
+      County = NAME,
+      StateAbbr = STUSPS
+    )
+  
+  # Create state abbreviation lookup for joining
+  state_lookup <- data.frame(
+    StateAbbr = c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"),
+    State = state.name
+  )
+  
+  # Add state names to shapefile
+  counties_sf <- counties_sf %>%
+    left_join(state_lookup, by = "StateAbbr")
+  
+  # Clean county names for better joining
+  counties_sf$County <- gsub(" County$| Parish$| Borough$| Census Area$| Municipality$", "", counties_sf$County)
+  election_2020$County <- gsub(" County$| Parish$| Borough$| Census Area$| Municipality$", "", election_2020$County)
+  election_2024$County <- gsub(" County$| Parish$| Borough$| Census Area$| Municipality$", "", election_2024$County)
+  
+  # Add year identifiers to election data
+  election_2020$Year <- 2020
+  election_2024$Year <- 2024
+  
+  # Create join keys
+  counties_sf$join_key <- paste(counties_sf$County, counties_sf$State)
+  election_2020$join_key <- paste(election_2020$County, election_2020$State)
+  election_2024$join_key <- paste(election_2024$County, election_2024$State)
+  
+  # Join shapefile with election data
+  counties_with_2020 <- counties_sf %>%
+    left_join(election_2020, by = "join_key")
+  
+  counties_with_both <- counties_with_2020 %>%
+    left_join(election_2024, by = "join_key", suffix = c("_2020", "_2024"))
+  
+  # Save the combined data
+  saveRDS(counties_with_both, "data/mp04/combined_election_data.rds")
+  
+  # Save as shapefile with quiet=TRUE to suppress messages
+  st_write(counties_with_both, "data/mp04/combined_counties_elections.shp", delete_layer = TRUE, quiet = TRUE)
+  
+  return(counties_with_both)
+}
+
+# Run the function but don't print the result automatically
+combined_data <- combine_election_data()
+```
+
+
+The truth emerges in the numbers! Task 4 combines geographic boundaries with election results, creating a powerful unified dataset that reveals the stories that matter. The analysis uncovers critical insights: Which counties showed the strongest support for President Trump? Which areas demonstrated the most dramatic rightward shift? The data doesn't lie - America is turning red.
+
+America's largest counties are rejecting failed Democratic policies. The evidence is clear as counties with the highest population density shift toward common sense leadership.
+
+
+## 4.1 **Which county or counties cast the most votes for Trump (in absolute terms) in 2024?**
+```{r}
+#| code-fold: true
+#| warning: false
+#| message: false
+
+# USA flag colors
+old_glory_blue <- "#3C3B6E"  # Dark blue from the US flag
+old_glory_red <- "#B22234"   # Red from the US flag
+white <- "#FFFFFF"
+
+# Find the county with most Trump votes in 2024
+top_trump_counties_2024 <- combined_data %>%
+  arrange(desc(Trump_Votes_2024)) %>%
+  select(County.y, State.y, Trump_Votes_2024) %>% 
+  na.omit() %>%
+  head(5) %>%
+  # Explicitly drop the geometry if it's still being carried along
+  sf::st_drop_geometry()
+
+# Format the table with direct HTML styling to ensure visibility even in colored rows
+formatted_table <- top_trump_counties_2024 %>%
+  mutate(
+    County = County.y,
+    State = State.y,
+    `Trump Votes (2024)` = format(Trump_Votes_2024, big.mark = ",")
+  ) %>%
+  select(County, State, `Trump Votes (2024)`)
+
+# Create the kable table with custom styles for all cells
+kable(formatted_table, "html", escape = FALSE, caption = "Counties with Most Trump Votes in 2024") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE) %>%
+  row_spec(0, background = old_glory_blue, color = white, bold = TRUE) %>%
+  row_spec(seq(1, nrow(formatted_table), by = 2), background = old_glory_red, color = white) %>%
+  row_spec(seq(2, nrow(formatted_table), by = 2), background = white, color = old_glory_blue) %>%
+  # Make all county and state names bold
+  column_spec(1:2, bold = TRUE)
+```
+
+## 4.2 **Which county or counties cast the most votes for Biden (as a fraction of total votes cast) in 2020?**
+```{r}
+#| code-fold: true
+#| warning: false
+#| message: false
+# USA flag colors
+old_glory_blue <- "#3C3B6E"  # Dark blue from the US flag
+old_glory_red <- "#B22234"   # Red from the US flag
+white <- "#FFFFFF"
+
+# Find counties with highest Biden vote share
+top_biden_counties_2020 <- combined_data %>%
+  mutate(Biden_Fraction = Biden_Votes / Total_Votes_2020) %>%
+  arrange(desc(Biden_Fraction)) %>%
+  select(County.y, State.y, Biden_Fraction, Biden_Votes, Total_Votes_2020) %>%
+  na.omit() %>%
+  head(5) %>%
+  sf::st_drop_geometry()
+
+# Format the table without HTML
+formatted_table <- top_biden_counties_2020 %>%
+  mutate(
+    County = County.y,
+    State = State.y,
+    `Biden %` = sprintf("%.1f%%", Biden_Fraction * 100),
+    `Biden Votes` = format(Biden_Votes, big.mark = ","),
+    `Total Votes (2020)` = format(Total_Votes_2020, big.mark = ",")
+  ) %>%
+  select(County, State, `Biden %`, `Biden Votes`, `Total Votes (2020)`)
+
+# Create the kable table with custom styles
+kable(formatted_table, "html", escape = FALSE, 
+      caption = "Counties with Highest Biden Vote Share in 2020") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE) %>%
+  row_spec(0, background = old_glory_blue, color = white, bold = TRUE) %>%
+  row_spec(seq(1, nrow(formatted_table), by = 2), background = old_glory_red, color = white) %>%
+  row_spec(seq(2, nrow(formatted_table), by = 2), background = white, color = old_glory_blue) %>%
+  column_spec(1:2, bold = TRUE) %>%
+  column_spec(3, color = old_glory_blue, bold = TRUE)
+```
+
+## 4.3 **Which county or counties had the largest shift towards Trump (in absolute terms) in 2024?**
+```{r}
+#| code-fold: true
+#| warning: false
+#| message: false
+# USA flag colors
+old_glory_blue <- "#3C3B6E"  # Dark blue from the US flag
+old_glory_red <- "#B22234"   # Red from the US flag
+white <- "#FFFFFF"
+
+# Find counties with largest shift towards Trump
+trump_shift_counties <- combined_data %>%
+  mutate(
+    Trump_Pct_2020 = Trump_Votes_2020 / Total_Votes_2020 * 100,
+    Trump_Pct_2024 = Trump_Votes_2024 / Total_Votes_2024 * 100,
+    Trump_Shift_Pct = Trump_Pct_2024 - Trump_Pct_2020
+  ) %>%
+  filter(!is.na(Trump_Shift_Pct)) %>%
+  arrange(desc(Trump_Shift_Pct)) %>%
+  select(County.y, State.y, Trump_Pct_2020, Trump_Pct_2024, Trump_Shift_Pct) %>%
+  head(5) %>%
+  sf::st_drop_geometry()
+
+# Format the table without HTML
+formatted_table <- trump_shift_counties %>%
+  mutate(
+    County = County.y,
+    State = State.y,
+    `Trump % (2020)` = sprintf("%.1f%%", Trump_Pct_2020),
+    `Trump % (2024)` = sprintf("%.1f%%", Trump_Pct_2024),
+    `Shift` = sprintf("+%.1f%%", Trump_Shift_Pct)
+  ) %>%
+  select(County, State, `Trump % (2020)`, `Trump % (2024)`, `Shift`)
+
+# Create the kable table with custom styles
+kable(formatted_table, "html", escape = FALSE,
+      caption = "Counties with Largest Shift Towards Trump from 2020 to 2024") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE) %>%
+  row_spec(0, background = old_glory_blue, color = white, bold = TRUE) %>%
+  row_spec(seq(1, nrow(formatted_table), by = 2), background = old_glory_red, color = white) %>%
+  row_spec(seq(2, nrow(formatted_table), by = 2), background = white, color = old_glory_blue) 
+```
+
+## 4.4 **Which state had the largest shift towards Harris (or smallest shift towards Trump) in 2024?**
+```{r}
+#| code-fold: true
+#| warning: false
+#| message: false
+ # USA flag colors
+old_glory_blue <- "#3C3B6E"  # Dark blue from the US flag
+old_glory_red <- "#B22234"   # Red from the US flag
+white <- "#FFFFFF"
+
+# Get state-level shifts
+state_shifts <- combined_data %>%
+  group_by(State.y) %>%
+  summarize(
+    Trump_Votes_2020 = sum(Trump_Votes_2020, na.rm = TRUE),
+    Biden_Votes_2020 = sum(Biden_Votes, na.rm = TRUE),
+    Total_Votes_2020 = sum(Total_Votes_2020, na.rm = TRUE),
+    Trump_Votes_2024 = sum(Trump_Votes_2024, na.rm = TRUE),
+    Harris_Votes_2024 = sum(Harris_Votes, na.rm = TRUE),
+    Total_Votes_2024 = sum(Total_Votes_2024, na.rm = TRUE)
+  ) %>%
+  mutate(
+    Trump_Pct_2020 = Trump_Votes_2020 / Total_Votes_2020 * 100,
+    Trump_Pct_2024 = Trump_Votes_2024 / Total_Votes_2024 * 100,
+    Trump_Shift = Trump_Pct_2024 - Trump_Pct_2020,
+    Harris_Shift = -Trump_Shift
+  ) %>%
+  filter(!is.na(Harris_Shift) & Total_Votes_2020 > 0 & Total_Votes_2024 > 0) %>%
+  arrange(desc(Harris_Shift)) %>%
+  head(5) %>%
+   sf::st_drop_geometry()
+
+# Format the table without HTML
+formatted_table <- state_shifts %>%
+  select(State.y, Trump_Pct_2020, Trump_Pct_2024, Trump_Shift, Harris_Shift) %>%
+  mutate(
+    State = State.y,
+    `Trump % (2020)` = sprintf("%.1f%%", Trump_Pct_2020),
+    `Trump % (2024)` = sprintf("%.1f%%", Trump_Pct_2024),
+    `Trump Shift` = sprintf("%+.1f%%", Trump_Shift),
+    `Harris Shift` = sprintf("%+.1f%%", Harris_Shift)
+  ) %>%
+  select(State, `Trump % (2020)`, `Trump % (2024)`, `Trump Shift`, `Harris Shift`)
+
+# Create the kable table with custom styles
+kable(formatted_table, "html", escape = FALSE,
+      caption = "States with Largest Shift Towards Harris from 2020 to 2024") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE) %>%
+  row_spec(0, background = old_glory_blue, color = white, bold = TRUE) %>%
+  row_spec(seq(1, nrow(formatted_table), by = 2), background = old_glory_red, color = white) %>%
+  row_spec(seq(2, nrow(formatted_table), by = 2), background = white, color = old_glory_blue) %>%
+  column_spec(1, bold = TRUE) %>%
+  column_spec(4, color = old_glory_red) %>%
+  column_spec(5, color = old_glory_blue, bold = TRUE) 
+
+```
+
+
+## 4.5 **What is the largest county, by area, in this data set?**
+```{r}
+#| code-fold: true
+#| warning: false
+#| message: false
+# USA flag colors
+old_glory_blue <- "#3C3B6E"  # Dark blue from the US flag
+old_glory_red <- "#B22234"   # Red from the US flag
+white <- "#FFFFFF"
+
+# Find largest counties by area
+largest_counties <- combined_data %>%
+  filter(!is.na(County.y) & !is.na(State.y)) %>%
+  mutate(Area_sq_km = as.numeric(ALAND) / 1000000) %>%
+  arrange(desc(Area_sq_km)) %>%
+  select(County.y, State.y, Area_sq_km) %>%
+  sf::st_drop_geometry() %>%
+  head(5)
+
+# Format the table without HTML
+formatted_table <- largest_counties %>%
+  mutate(
+    County = County.y,
+    State = State.y,
+    `Area (sq km)` = format(round(Area_sq_km, 1), big.mark = ",")
+  ) %>%
+  select(County, State, `Area (sq km)`)
+
+# Create the kable table with custom styles
+kable(formatted_table, "html", escape = FALSE,
+      caption = "Largest Counties by Area") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE) %>%
+  row_spec(0, background = old_glory_blue, color = white, bold = TRUE) %>%
+  row_spec(seq(1, nrow(formatted_table), by = 2), background = old_glory_red, color = white) %>%
+  row_spec(seq(2, nrow(formatted_table), by = 2), background = white, color = old_glory_blue) %>%
+  column_spec(1:2, bold = TRUE)
+
+```
+
+
+## 4.6 **Which county has the highest voter density (voters per unit of area) in 2020?**
+```{r}
+#| code-fold: true
+#| warning: false
+#| message: false
+# USA flag colors
+old_glory_blue <- "#3C3B6E"  # Dark blue from the US flag
+old_glory_red <- "#B22234"   # Red from the US flag
+white <- "#FFFFFF"
+
+# Calculate voter density
+voter_density_2020 <- combined_data %>%
+  filter(!is.na(County.y) & !is.na(State.y) & !is.na(Total_Votes_2020) & !is.na(ALAND)) %>%
+  mutate(Area_sq_km = as.numeric(ALAND) / 1000000,
+         Voter_Density_2020 = Total_Votes_2020 / Area_sq_km) %>%
+  filter(Area_sq_km > 0) %>%
+  arrange(desc(Voter_Density_2020)) %>%
+  select(County.y, State.y, Total_Votes_2020, Area_sq_km, Voter_Density_2020) %>%
+  sf::st_drop_geometry() %>%
+  head(5)
+
+# Format the table without HTML
+formatted_table <- voter_density_2020 %>%
+  mutate(
+    County = County.y,
+    State = State.y,
+    `Total Votes (2020)` = format(Total_Votes_2020, big.mark = ","),
+    `Area (sq km)` = round(Area_sq_km, 1),
+    `Voter Density` = round(Voter_Density_2020, 1)
+  ) %>%
+  select(County, State, `Total Votes (2020)`, `Area (sq km)`, `Voter Density`)
+
+# Create the kable table with custom styles
+kable(formatted_table, "html", escape = FALSE,
+      caption = "Counties with Highest Voter Density in 2020 (voters per sq km)") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE) %>%
+  row_spec(0, background = old_glory_blue, color = white, bold = TRUE) %>%
+  row_spec(seq(1, nrow(formatted_table), by = 2), background = old_glory_red, color = white) %>%
+  row_spec(seq(2, nrow(formatted_table), by = 2), background = white, color = old_glory_blue) %>%
+  column_spec(1:2, bold = TRUE)
+```
+
+## 4.7 **Which county had the largest increase in voter turnout in 2024?**
+```{r}
+#| code-fold: true
+#| warning: false
+#| message: false
+# USA flag colors
+old_glory_blue <- "#3C3B6E"  # Dark blue from the US flag
+old_glory_red <- "#B22234"   # Red from the US flag
+white <- "#FFFFFF"
+
+# Calculate voter turnout change
+turnout_change <- combined_data %>%
+  filter(!is.na(County.y) & !is.na(State.y) & 
+         !is.na(Total_Votes_2020) & !is.na(Total_Votes_2024)) %>%
+  mutate(
+    Turnout_Change = Total_Votes_2024 - Total_Votes_2020,
+    Turnout_Change_Pct = (Total_Votes_2024 - Total_Votes_2020) / Total_Votes_2020 * 100
+  ) %>%
+  arrange(desc(Turnout_Change)) %>%
+  select(County.y, State.y, Total_Votes_2020, Total_Votes_2024, Turnout_Change, Turnout_Change_Pct) %>%
+  sf::st_drop_geometry() %>%
+  head(5)
+
+# Format the table without HTML
+formatted_table <- turnout_change %>%
+  mutate(
+    County = County.y,
+    State = State.y,
+    `Total Votes (2020)` = format(Total_Votes_2020, big.mark = ","),
+    `Total Votes (2024)` = format(Total_Votes_2024, big.mark = ","),
+    `Change` = format(Turnout_Change, big.mark = ","),
+    `% Change` = sprintf("%+.1f%%", Turnout_Change_Pct)
+  ) %>%
+  select(County, State, `Total Votes (2020)`, `Total Votes (2024)`, `Change`, `% Change`)
+
+# Create the kable table with custom styles
+kable(formatted_table, "html", escape = FALSE,
+      caption = "Counties with Largest Increase in Voter Turnout from 2020 to 2024") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE) %>%
+  row_spec(0, background = old_glory_blue, color = white, bold = TRUE) %>%
+  row_spec(seq(1, nrow(formatted_table), by = 2), background = old_glory_red, color = white) %>%
+  row_spec(seq(2, nrow(formatted_table), by = 2), background = white, color = old_glory_blue) %>%
+  column_spec(1:2, bold = TRUE) %>%
+  column_spec(5:6, bold = TRUE)
+
+```
+
+# **Task -5: The picture with a story**
+
+A picture tells a thousand words. Task 5 creates a powerful visualization showing county-level shifts between 2020 and 2024, with red arrows pointing to Republican gains and blue arrows pointing to Democratic gains. The map speaks volumes - red arrows significantly outnumber blue arrows across the American landscape. This isn't just a victory; it's a mandate.
+
+```{r}
+#| code-fold: true
+#| warning: false
+#| message: false
+# Load the combined data
+combined_data <- readRDS("data/mp04/combined_election_data.rds")
+
+# 1. Calculate the shift rightwards for each county
+election_shift <- combined_data %>%
+  # Calculate Trump percentage in 2020 and 2024
+  mutate(
+    Trump_Pct_2020 = ifelse(is.na(Trump_Votes_2020) | is.na(Total_Votes_2020), NA, 
+                            Trump_Votes_2020 / Total_Votes_2020 * 100),
+    Trump_Pct_2024 = ifelse(is.na(Trump_Votes_2024) | is.na(Total_Votes_2024), NA, 
+                            Trump_Votes_2024 / Total_Votes_2024 * 100),
+    # Calculate the shift (positive = rightward shift toward Trump)
+    Trump_Shift = Trump_Pct_2024 - Trump_Pct_2020,
+    # Create a column to identify the direction of shift
+    Shift_Direction = ifelse(Trump_Shift > 0, "Right", "Left"),
+    # Scale for arrow length
+    Arrow_Length = case_when(
+      abs(Trump_Shift) < 1 ~ 0,           # No visible arrow for very small shifts
+      abs(Trump_Shift) < 5 ~ 0.5,         # Small arrows for small shifts
+      abs(Trump_Shift) < 10 ~ 1.0,        # Medium arrows for medium shifts
+      TRUE ~ 1.5                          # Large arrows for large shifts
+    )
+  ) %>%
+  # Filter out rows with NA values in shift and keep only valid geometry
+  filter(!is.na(Trump_Shift) & !st_is_empty(geometry))
+
+# USA flag colors
+old_glory_blue <- "#3C3B6E"  # Dark blue from the US flag
+old_glory_red <- "#B22234"   # Red from the US flag
+white <- "#FFFFFF"
+
+# Create summary statistics table
+shift_summary <- data.frame(
+  Statistic = c("Minimum", "1st Quartile", "Median", "Mean", "3rd Quartile", "Maximum", 
+                "Counties Shifting Right", "Counties Shifting Left"),
+  Value = c(
+    sprintf("%.2f%%", min(election_shift$Trump_Shift, na.rm = TRUE)),
+    sprintf("%.2f%%", quantile(election_shift$Trump_Shift, 0.25, na.rm = TRUE)),
+    sprintf("%.2f%%", median(election_shift$Trump_Shift, na.rm = TRUE)),
+    sprintf("%.2f%%", mean(election_shift$Trump_Shift, na.rm = TRUE)),
+    sprintf("%.2f%%", quantile(election_shift$Trump_Shift, 0.75, na.rm = TRUE)),
+    sprintf("%.2f%%", max(election_shift$Trump_Shift, na.rm = TRUE)),
+    as.character(sum(election_shift$Trump_Shift > 0)),
+    as.character(sum(election_shift$Trump_Shift < 0))
+  )
+)
+
+# Create the kable table with USA flag styling
+kable(shift_summary, "html", escape = FALSE,
+      caption = "Summary of County-Level Shifts from 2020 to 2024") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE) %>%
+  row_spec(0, background = old_glory_blue, color = white, bold = TRUE) %>%
+  row_spec(seq(1, 6), background = white, color = old_glory_blue) %>%
+  row_spec(7, background = old_glory_red, color = white, bold = TRUE) %>%
+  row_spec(8, background = old_glory_blue, color = white, bold = TRUE) %>%
+  column_spec(1, bold = TRUE)
+
+# Create direction statistics table
+shift_direction <- data.frame(
+  Direction = c("Right (More Republican)", "Left (More Democratic)"),
+  `Number of Counties` = c(
+    sum(election_shift$Trump_Shift > 0),
+    sum(election_shift$Trump_Shift < 0)
+  ),
+  `Average Shift` = c(
+    sprintf("+%.2f%%", mean(election_shift$Trump_Shift[election_shift$Trump_Shift > 0], na.rm = TRUE)),
+    sprintf("%.2f%%", mean(election_shift$Trump_Shift[election_shift$Trump_Shift < 0], na.rm = TRUE))
+  ),
+  `Maximum Shift` = c(
+    sprintf("+%.2f%%", max(election_shift$Trump_Shift, na.rm = TRUE)),
+    sprintf("%.2f%%", min(election_shift$Trump_Shift, na.rm = TRUE))
+  )
+)
+
+# Create the kable table with USA flag styling
+kable(shift_direction, "html", escape = FALSE,
+      caption = "County Shifts by Direction from 2020 to 2024") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE) %>%
+  row_spec(0, background = old_glory_blue, color = white, bold = TRUE) %>%
+  row_spec(1, background = old_glory_red, color = white, bold = TRUE) %>%
+  row_spec(2, background = old_glory_blue, color = white, bold = TRUE) %>%
+  column_spec(1, bold = TRUE) %>%
+  column_spec(3:4, bold = TRUE)
+
+# Top 5 counties with rightward shifts
+top_right_shifts <- election_shift %>%
+  arrange(desc(Trump_Shift)) %>%
+  select(County.y, State.y, Trump_Shift) %>%
+  head(5) %>%
+  sf::st_drop_geometry()
+
+# Top 5 counties with leftward shifts
+top_left_shifts <- election_shift %>%
+  arrange(Trump_Shift) %>%
+  select(County.y, State.y, Trump_Shift) %>%
+  head(5) %>%
+  sf::st_drop_geometry()
+
+# Format rightward shifts table
+right_shifts_table <- top_right_shifts %>%
+  mutate(
+    County = County.y,
+    State = State.y,
+    `Trump Shift` = sprintf("+%.2f%%", Trump_Shift)
+  ) %>%
+  select(County, State, `Trump Shift`)
+
+# Format leftward shifts table
+left_shifts_table <- top_left_shifts %>%
+  mutate(
+    County = County.y,
+    State = State.y,
+    `Trump Shift` = sprintf("%.2f%%", Trump_Shift)
+  ) %>%
+  select(County, State, `Trump Shift`)
+
+# Create the kable table for rightward shifts
+kable(right_shifts_table, "html", escape = FALSE,
+      caption = "Counties with Largest Rightward Shifts (2020 to 2024)") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE) %>%
+  row_spec(0, background = old_glory_blue, color = white, bold = TRUE) %>%
+  row_spec(seq(1, nrow(right_shifts_table)), background = old_glory_red, color = white) %>%
+  column_spec(1:2, bold = TRUE) %>%
+  column_spec(3, bold = TRUE)
+
+# Create the kable table for leftward shifts
+kable(left_shifts_table, "html", escape = FALSE,
+      caption = "Counties with Largest Leftward Shifts (2020 to 2024)") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE) %>%
+  row_spec(0, background = old_glory_blue, color = white, bold = TRUE) %>%
+  row_spec(seq(1, nrow(left_shifts_table)), background = old_glory_blue, color = white) %>%
+  column_spec(1:2, bold = TRUE) %>%
+  column_spec(3, bold = TRUE)
+
+# 2 & 3. Modify geometry and prepare map
+# Use tigris::shift_geometry to relocate Alaska and Hawaii
+shifted_data <- shift_geometry(election_shift, 
+                               position = "below",  
+                               preserve_area = FALSE)
+
+# 4. Compute the centroid of each county
+shifted_data <- shifted_data %>%
+  mutate(
+    # Calculate centroids
+    centroid = st_centroid(geometry),
+    # Extract coordinates 
+    lon = st_coordinates(centroid)[,1],
+    lat = st_coordinates(centroid)[,2]
+  )
+```
+
+```{r, fig.width=12, fig.height=10}
+#| code-fold: true
+#| warning: false
+#| message: false
+nyt_plot <- ggplot() +
+  # Base map layer with darker boundaries
+  geom_sf(data = shifted_data, fill = "white", color = "#888888", size = 0.2) +
+  # Add USA outline (assuming shifted_data includes all counties)
+  geom_sf(data = st_union(shifted_data), fill = NA, color = "#333333", size = 0.6) +
+  # Add arrows - only for counties with non-zero Arrow_Length
+  geom_segment(data = filter(shifted_data, Arrow_Length > 0),
+               aes(x = lon, y = lat,
+                   xend = lon + ifelse(Trump_Shift > 0, 1, -1) * Arrow_Length,
+                   yend = lat,
+                   color = Shift_Direction),
+               arrow = arrow(length = unit(0.1, "cm"), type = "closed"),
+               size = 0.3, alpha = 0.8) +
+  # Set colors for arrows
+  scale_color_manual(values = c("Left" = "blue", "Right" = "red"),
+                     name = "",
+                     labels = c("Left" = "More Dem.", "Right" = "More Rep.")) +
+  # Customize appearance
+  theme_void() +
+  labs(title = "Shift in margin from 2020 to 2024") +
+  theme(
+    legend.position = "top",
+    legend.direction = "horizontal",
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.caption = element_text(hjust = 0, face = "italic", size = 8),
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+# Display the plot
+print(nyt_plot)
+```
+
+# **Task 6: Statistical Analysis and Storytelling**
+
+**The Great Republican Shift - Most counties moved right**
+The numbers confirm what we already know. Task 6 applies rigorous statistical analysis to validate three undeniable truths:
+
+```{r}
+#| code-fold: true
+#| warning: false
+#| message: false
+# Define USA flag colors
+usa_red <- "#B22234"     # Flag red
+usa_blue <- "#3C3B6E"    # Flag blue
+usa_red_light <- "#E63946"  # Lighter red
+usa_blue_light <- "#1D3557" # Darker blue
+usa_white <- "#FFFFFF"   # White
+
+# Calculate the shift rightwards for each county
+election_shift <- combined_data %>%
+  # Filter out rows with missing values in key columns
+  filter(!is.na(Trump_Votes_2020) & !is.na(Trump_Votes_2024) & 
+           !is.na(Total_Votes_2020) & !is.na(Total_Votes_2024)) %>%
+  # Calculate percentages and shifts
+  mutate(
+    Trump_Pct_2020 = Trump_Votes_2020 / Total_Votes_2020 * 100,
+    Trump_Pct_2024 = Trump_Votes_2024 / Total_Votes_2024 * 100,
+    Trump_Shift = Trump_Pct_2024 - Trump_Pct_2020,
+    # Add demographic classifications based on available data
+    Hispanic_County = ifelse(grepl("over 25% Hispanic", County.y, ignore.case=TRUE) | 
+                               (County.y %in% c("Starr", "Webb", "Hidalgo", "Cameron")), TRUE, FALSE),
+    Urban_County = ifelse(Total_Votes_2020 > 100000, TRUE, FALSE)  # Simple proxy for urban counties
+  )
+
+# Drop geometry for faster computation
+election_data <- st_drop_geometry(election_shift)
+
+# Count counties shifting right vs left
+shift_counts <- election_data %>%
+  summarize(
+    Total_Counties = n(),
+    Right_Shift = sum(Trump_Shift > 0, na.rm = TRUE),
+    Left_Shift = sum(Trump_Shift < 0, na.rm = TRUE),
+    Right_Shift_Pct = Right_Shift / Total_Counties * 100
+  )
+
+# FIXED WAFFLE CHART: Create the waffle chart correctly
+waffle_data <- c(
+  `Shifted Right` = shift_counts$Right_Shift,
+  `Shifted Left` = shift_counts$Left_Shift
+)
+
+# Use the waffle() function directly - this is the correct approach
+waffle_chart <- waffle::waffle(
+  waffle_data, 
+  rows = 10,
+  colors = c(usa_red, usa_blue),
+  size = 0.5,
+  title = "The Great Republican Shift",
+  xlab = paste0(round(shift_counts$Right_Shift_Pct, 1), 
+              "% of counties shifted toward Republicans in 2024")
+) +
+  coord_equal() +
+  labs(
+    title = "The Great Republican Shift",
+    subtitle = paste0(round(shift_counts$Right_Shift_Pct, 1), 
+                    "% of counties shifted toward Republicans in 2024"),
+    fill = ""
+  ) +
+  theme_minimal(base_family = "Helvetica") +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank()
+  )
+
+# Display the waffle chart
+print(waffle_chart)
+```
+
+**The Hispanic Realignment**
+First, the Great Republican Shift - an overwhelming majority of counties moved rightward, rejecting failed progressive policies. Second, the Hispanic Realignment - Hispanic communities across America embraced Republican leadership like never before, with dramatic shifts toward common-sense governance.
+```{r}
+#| code-fold: true
+#| warning: false
+#| message: false
+# Compare shifts in Hispanic vs non-Hispanic counties
+hispanic_analysis <- election_data %>%
+  group_by(Hispanic_County) %>%
+  summarize(
+    Counties = n(),
+    Avg_Shift = mean(Trump_Shift, na.rm = TRUE),
+    Median_Shift = median(Trump_Shift, na.rm = TRUE)
+  ) %>%
+  mutate(County_Type = ifelse(Hispanic_County, "Hispanic Counties", "Other Counties"))
+
+# Create a lollipop chart comparing Hispanic vs non-Hispanic counties
+hispanic_lollipop <- ggplot(hispanic_analysis, 
+                           aes(x = County_Type, 
+                               y = Avg_Shift, 
+                               color = County_Type)) +
+  geom_segment(aes(x = County_Type, 
+                  xend = County_Type, 
+                  y = 0, 
+                  yend = Avg_Shift),
+              linewidth = 1.5) +
+  geom_point(size = 10, alpha = 0.8) +
+  scale_color_manual(values = c("Hispanic Counties" = "#B22234", "Other Counties" = "#3C3B6E")) +
+  geom_text(aes(label = round(Avg_Shift, 1)), 
+            color = "white", 
+            fontface = "bold") +
+  labs(
+    title = "The Hispanic Realignment",
+    subtitle = "Hispanic counties shifted dramatically toward Republicans",
+    y = "Average Shift (percentage points)",
+    x = ""
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5),
+    legend.position = "none",
+    axis.text.y = element_text(size = 10),
+    axis.text.x = element_text(size = 12, face = "bold")
+  )
+
+print(hispanic_lollipop)
+```
+
+
+**Urban Areas Turn Right**
+And finally, America's cities turned toward stability and security, with urban areas showing significant Republican gains.
+This isn't just an election victory. It's a great American shift toward prosperity, security, and freedom. The data has spoken.
+```{r}
+#| code-fold: true
+#| warning: false
+#| message: false
+# Prepare data for dumbbell plot
+urban_rural_data <- election_data %>%
+  group_by(Urban_County) %>%
+  summarize(
+    Counties = n(),
+    Avg_Shift = mean(Trump_Shift, na.rm = TRUE),
+    Avg_2020 = mean(Trump_Pct_2020, na.rm = TRUE),
+    Avg_2024 = mean(Trump_Pct_2024, na.rm = TRUE)
+  ) %>%
+  mutate(County_Type = ifelse(Urban_County, "Urban Counties", "Rural Counties"))
+
+# Reshape to long format for dumbbell plot
+urban_rural_long <- urban_rural_data %>%
+  select(County_Type, Avg_2020, Avg_2024) %>%
+  pivot_longer(
+    cols = c(Avg_2020, Avg_2024),
+    names_to = "Year",
+    values_to = "Support"
+  ) %>%
+  mutate(Year = ifelse(Year == "Avg_2020", "2020", "2024"))
+
+# Create dumbbell plot
+urban_dumbbell <- ggplot(urban_rural_long, 
+                        aes(x = Support, 
+                            y = County_Type, 
+                            color = Year)) +
+  geom_line(aes(group = County_Type), 
+           color = "#999999", 
+           size = 1.5) +
+  geom_point(size = 5) +
+  scale_color_manual(values = c("2020" = "#3C3B6E", "2024" = "#B22234")) +
+  labs(
+    title = "Cities Turn Right",
+    subtitle = "Republican support in 2020 vs 2024",
+    x = "Average Republican Support (%)",
+    y = "",
+    color = "Year"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5),
+    legend.position = "bottom",
+    axis.text.y = element_text(size = 12, face = "bold")
+  )
+
+print(urban_dumbbell)
+```
+
+{{< video https://www.youtube.com/watch?v=6Ukns6YVm5U >}}
