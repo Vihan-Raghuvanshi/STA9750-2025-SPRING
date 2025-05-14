@@ -1,0 +1,24 @@
+<!-- Inject subway animation on page load -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Create the animation container
+  var container = document.createElement('div');
+  container.className = 'subway-container';
+  container.innerHTML = `
+    <div class="mta-logo">MTA</div>
+    <div class="subway-track"></div>
+    <div class="subway-stop stop-1"></div>
+    <div class="subway-stop stop-2"></div>
+    <div class="subway-stop stop-3"></div>
+    <div class="subway-stop stop-4"></div>
+    <div class="subway-train">
+      <div class="train-window window-1"></div>
+      <div class="train-window window-2"></div>
+      <div class="train-window window-3"></div>
+    </div>
+  `;
+  
+  // Add it to the beginning of the body
+  document.body.insertBefore(container, document.body.firstChild);
+});
+</script>

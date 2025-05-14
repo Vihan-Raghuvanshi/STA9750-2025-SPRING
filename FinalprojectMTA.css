@@ -1,0 +1,514 @@
+/* FinalprojectMTA.css - Complete CSS file with animation and enhanced color scheme */
+
+/* Main document styling */
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif !important;
+  margin-left: 70px !important; /* Make room for the subway animation */
+  line-height: 1.4 !important;
+  color: #333 !important;
+  font-size: 14px !important;
+  padding: 20px !important;
+  background-color: #f8f9fa !important; /* Lighter background */
+}
+
+/* Headings with varied colors */
+h1 {
+  color: white !important;
+  font-weight: 600 !important;
+  font-size: 28px !important;
+  margin-bottom: 15px !important;
+  background: linear-gradient(to right, #0039A6, #00933C) !important; /* Blue to green gradient */
+  padding: 10px 15px !important;
+  border-radius: 5px !important;
+}
+
+h2 {
+  color: #0039A6 !important; /* MTA Blue */
+  font-weight: 600 !important;
+  font-size: 22px !important;
+  margin-top: 20px !important;
+  margin-bottom: 10px !important;
+  border-bottom: 2px solid #fccc0a !important; /* MTA Yellow border */
+  padding-bottom: 6px !important;
+  padding-left: 10px !important;
+  background-color: #f0f5ff !important; /* Light blue background */
+  border-radius: 5px 5px 0 0 !important;
+}
+
+h3 {
+  color: #00933C !important; /* MTA Green */
+  font-weight: 600 !important;
+  font-size: 18px !important;
+  margin-top: 15px !important;
+  margin-bottom: 8px !important;
+  border-left: 4px solid #fccc0a !important; /* MTA Yellow */
+  padding-left: 10px !important;
+}
+
+/* Paragraph and text elements */
+p, li, figcaption, .text-body {
+  font-size: 14px !important;
+  margin-top: 0.5em !important;
+  margin-bottom: 0.5em !important;
+}
+
+/* Enhanced table styling with more colors */
+table {
+  border-collapse: collapse !important;
+  margin: 20px auto !important;
+  font-size: 13px !important;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 5px !important;
+  overflow: hidden !important;
+  width: 90% !important; /* Tables use 90% of container width */
+}
+
+thead tr {
+  background: linear-gradient(to right, #0039A6, #00933C) !important; /* Blue to green gradient */
+  color: white !important;
+  text-align: left !important;
+  font-weight: bold !important;
+}
+
+th, td {
+  padding: 8px 10px !important;
+}
+
+tbody tr {
+  border-bottom: 1px solid #dddddd !important;
+}
+
+tbody tr:nth-of-type(even) {
+  background-color: #f0f5ff !important; /* Light blue for even rows */
+}
+
+tbody tr:nth-of-type(odd) {
+  background-color: #f7faef !important; /* Light green for odd rows */
+}
+
+tbody tr:last-of-type {
+  border-bottom: 2px solid #0039A6 !important;
+}
+
+/* Alternate row colors for visual interest */
+tbody tr:nth-of-type(4n+1) {
+  background-color: rgba(252, 204, 10, 0.05) !important; /* Very light yellow */
+}
+
+tbody tr:nth-of-type(4n+3) {
+  background-color: rgba(0, 147, 60, 0.05) !important; /* Very light green */
+}
+
+/* Hover effect for tables */
+tbody tr:hover {
+  background-color: rgba(252, 204, 10, 0.2) !important; /* Yellow highlight on hover */
+}
+
+/* Code block styling */
+pre {
+  background-color: #2b2b2b !important; /* Dark background */
+  border-left: 5px solid #fccc0a !important; /* MTA Yellow */
+  padding: 10px !important;
+  overflow: auto !important;
+  font-size: 12px !important;
+  color: #f8f8f2 !important; /* Light text */
+  border-radius: 0 5px 5px 0 !important;
+}
+
+code {
+  color: #00933C !important; /* Green for inline code */
+}
+
+/* TOC styling with improved colors */
+.sidebar.toc-right {
+  width: 200px !important;
+  font-size: 12px !important;
+}
+
+#toc-title {
+  color: #0039A6 !important;
+  font-weight: bold !important;
+  font-size: 14px !important;
+  margin-bottom: 8px !important;
+  border-bottom: 2px solid #fccc0a !important;
+  padding-bottom: 5px !important;
+}
+
+.sidebar-item-container {
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+  line-height: 1.2 !important;
+}
+
+.sidebar-item-container .sidebar-item-container {
+  padding-left: 6px !important;
+}
+
+.sidebar-item-container .active {
+  color: #00933C !important; /* Green for active items */
+  font-weight: bold !important;
+}
+
+.sidebar-content {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-left: 3px solid #0039A6 !important;
+  padding: 10px !important;
+  border-radius: 5px 0 0 5px !important;
+}
+
+/* Fix main content spacing */
+#quarto-document-content {
+  padding-right: 220px !important;
+}
+
+/* Enhanced links */
+a {
+  color: #0039A6 !important;
+  text-decoration: none !important;
+  transition: color 0.2s ease-in-out !important;
+}
+
+a:hover {
+  color: #00933C !important; /* Green on hover */
+  text-decoration: underline !important;
+}
+
+/* Section dividers with MTA colors */
+hr {
+  border: 0 !important;
+  height: 3px !important;
+  background: linear-gradient(to right, #0039A6, #fccc0a, #00933C) !important; /* Blue, yellow, green */
+  margin: 25px 0 !important;
+}
+
+/* Improved buttons with color transitions */
+button, .btn {
+  background-color: #0039A6 !important;
+  color: white !important;
+  border: none !important;
+  padding: 6px 12px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  font-size: 13px !important;
+  transition: all 0.3s ease !important;
+}
+
+button:hover, .btn:hover {
+  background-color: #00933C !important; /* Green on hover */
+  color: white !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+}
+
+/* Content containers with subtle color */
+.content-container {
+  background-color: white !important;
+  border-radius: 8px !important;
+  padding: 20px !important;
+  margin-bottom: 25px !important;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.05) !important;
+  border-left: 4px solid #0039A6 !important;
+}
+
+/* Section styling */
+.key-finding {
+  background-color: #edf7ed !important; /* Light green background */
+  border-left: 4px solid #00933C !important; /* Green border */
+  padding: 15px !important;
+  margin: 15px 0 !important;
+  font-size: 14px !important;
+  border-radius: 0 5px 5px 0 !important;
+}
+
+/* Call-out box for important insights */
+.insight-box {
+  background-color: #fffbeb !important; /* Light yellow */
+  border: 2px solid #fccc0a !important; /* MTA Yellow */
+  border-radius: 8px !important;
+  padding: 15px !important;
+  margin: 20px 0 !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1) !important;
+}
+
+/* Visualization containers */
+.viz-container {
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 8px !important;
+  padding: 20px !important;
+  margin: 20px 0 !important;
+  background-color: white !important;
+  box-shadow: 0 3px 15px rgba(0,0,0,0.1) !important;
+}
+
+/* Subway Animation CSS with enhanced colors */
+
+/* Subway animation container - gradient background */
+.subway-container {
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 60px !important;
+  height: 100% !important;
+  background: linear-gradient(to bottom, #0039A6, #00933C) !important; /* Blue to green gradient */
+  z-index: 9999 !important;
+  overflow: hidden !important;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.2) !important;
+}
+
+/* Subway track */
+.subway-track {
+  position: absolute !important;
+  left: 27px !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  width: 6px !important;
+  background-color: #333 !important;
+  box-shadow: 0 0 5px rgba(0,0,0,0.3) !important;
+}
+
+/* Subway stops */
+.subway-stop {
+  position: absolute !important;
+  left: 25px !important;
+  width: 10px !important;
+  height: 10px !important;
+  background-color: #fccc0a !important; /* MTA Yellow */
+  border-radius: 50% !important;
+  z-index: 10000 !important;
+  box-shadow: 0 0 5px rgba(255,255,255,0.5) !important;
+}
+
+/* Stop positions with labels */
+.stop-1 { 
+  top: 20% !important; 
+}
+.stop-1::after {
+  content: "Data" !important;
+  position: absolute !important;
+  left: 15px !important;
+  color: white !important;
+  font-size: 9px !important;
+  font-weight: bold !important;
+  white-space: nowrap !important;
+}
+
+.stop-2 { 
+  top: 40% !important; 
+}
+.stop-2::after {
+  content: "Analysis" !important;
+  position: absolute !important;
+  left: 15px !important;
+  color: white !important;
+  font-size: 9px !important;
+  font-weight: bold !important;
+  white-space: nowrap !important;
+}
+
+.stop-3 { 
+  top: 60% !important; 
+}
+.stop-3::after {
+  content: "Results" !important;
+  position: absolute !important;
+  left: 15px !important;
+  color: white !important;
+  font-size: 9px !important;
+  font-weight: bold !important;
+  white-space: nowrap !important;
+}
+
+.stop-4 { 
+  top: 80% !important; 
+}
+.stop-4::after {
+  content: "Impact" !important;
+  position: absolute !important;
+  left: 15px !important;
+  color: white !important;
+  font-size: 9px !important;
+  font-weight: bold !important;
+  white-space: nowrap !important;
+}
+
+/* Subway train */
+.subway-train {
+  position: absolute !important;
+  left: 15px !important;
+  width: 30px !important;
+  height: 100px !important;
+  background-color: #fccc0a !important; /* MTA Yellow */
+  border-radius: 5px !important;
+  z-index: 10001 !important;
+  animation: moveSubway 25s linear infinite !important;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3) !important;
+  border: 1px solid #333 !important;
+}
+
+/* Subway train windows */
+.train-window {
+  position: absolute !important;
+  left: 5px !important;
+  width: 20px !important;
+  height: 15px !important;
+  background-color: #a6caf0 !important;
+  border-radius: 3px !important;
+  border: 1px solid #333 !important;
+}
+
+.window-1 { top: 15px !important; }
+.window-2 { top: 40px !important; }
+.window-3 { top: 65px !important; }
+
+/* Subway train animation */
+@keyframes moveSubway {
+  0% { top: -100px; }
+  20% { top: 20%; transform: translateY(-50px); }
+  22% { top: 20%; transform: translateY(-50px); }
+  40% { top: 40%; transform: translateY(-50px); }
+  42% { top: 40%; transform: translateY(-50px); }
+  60% { top: 60%; transform: translateY(-50px); }
+  62% { top: 60%; transform: translateY(-50px); }
+  80% { top: 80%; transform: translateY(-50px); }
+  82% { top: 80%; transform: translateY(-50px); }
+  100% { top: 100%; }
+}
+
+/* Enhanced MTA logo */
+.mta-logo {
+  position: absolute !important;
+  top: 10px !important;
+  left: 10px !important;
+  width: 40px !important;
+  height: 40px !important;
+  background-color: white !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: bold !important;
+  color: #0039A6 !important;
+  font-size: 14px !important;
+  z-index: 10002 !important;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3) !important;
+  border: 2px solid #fccc0a !important; /* Yellow border */
+}
+
+/* Plotly and visualization styling */
+.plotly-graph-div {
+  margin: 0 auto !important;
+  font-size: 13px !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1) !important;
+  transition: transform 0.3s ease !important;
+}
+
+.plotly-graph-div:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.15) !important;
+}
+
+/* Print adjustments */
+@media print {
+  .subway-container {
+    display: none !important;
+  }
+  
+  body, #quarto-content {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+  
+  #quarto-document-content {
+    padding-right: 0 !important;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .sidebar.toc-right {
+    display: none !important;
+  }
+  
+  #quarto-document-content {
+    padding-right: 0 !important;
+  }
+}
+
+/* Definition terms */
+dt {
+  font-weight: bold !important;
+  color: #00933C !important; /* Green */
+}
+
+/* Blockquotes */
+blockquote {
+  border-left: 4px solid #fccc0a !important; /* Yellow */
+  padding: 10px 20px !important;
+  background-color: #f9f9f9 !important;
+  font-style: italic !important;
+}
+
+/* Figure captions */
+figcaption {
+  color: #555 !important;
+  font-style: italic !important;
+  text-align: center !important;
+  margin-top: 8px !important;
+}
+
+/* Lists with custom bullets */
+ul {
+  list-style: none !important;
+  padding-left: 20px !important;
+}
+
+ul li::before {
+  content: "•" !important;
+  color: #0039A6 !important; /* Blue bullets */
+  font-weight: bold !important;
+  display: inline-block !important;
+  width: 1em !important;
+  margin-left: -1em !important;
+}
+
+/* Lists with alternating bullet colors */
+ul li:nth-child(odd)::before {
+  color: #0039A6 !important; /* Blue */
+}
+
+ul li:nth-child(even)::before {
+  color: #00933C !important; /* Green */
+}
+
+/* Special highlight class */
+.highlight {
+  background-color: rgba(252, 204, 10, 0.2) !important; /* Yellow highlight */
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+}
+
+/* Box for key metrics */
+.metric-box {
+  display: inline-block !important;
+  background: linear-gradient(to bottom right, #0039A6, #00933C) !important;
+  color: white !important;
+  padding: 15px !important;
+  margin: 10px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2) !important;
+  text-align: center !important;
+  min-width: 150px !important;
+}
+
+.metric-value {
+  font-size: 24px !important;
+  font-weight: bold !important;
+  margin: 5px 0 !important;
+}
+
+.metric-label {
+  font-size: 12px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+}

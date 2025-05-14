@@ -1,0 +1,89 @@
+<!-- Include this file separately from your CSS -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<!-- Subway Animation Container -->
+<div class="subway-animation-container">
+  <div class="mta-logo-container">
+    <div class="mta-logo">MTA</div>
+  </div>
+  <div class="subway-track"></div>
+  <div class="subway-station station-left">
+    <div class="station-label">Times Sq</div>
+  </div>
+  <div class="subway-station station-right">
+    <div class="station-label">Grand Central</div>
+  </div>
+  <div class="subway-train">
+    <div class="train-window window-1"></div>
+    <div class="train-window window-2"></div>
+    <div class="train-window window-3"></div>
+    <div class="train-window window-4"></div>
+    <div class="train-door door-1"></div>
+    <div class="train-door door-2"></div>
+    <div class="train-light"></div>
+    <div class="route-indicator">N</div>
+  </div>
+</div>
+
+<script>
+$(document).ready(function() {
+  // Dynamic train features
+  setInterval(function() {
+    // Randomly change train color
+    const trainColors = [
+      'var(--mta-blue)', 
+      'var(--mta-green)', 
+      'var(--mta-orange)', 
+      'var(--mta-purple)', 
+      'var(--mta-red)'
+    ];
+    
+    // Randomly change route indicator
+    const routes = ['A', 'B', 'C', 'D', 'E', 'F', 'N', 'Q', 'R', '1', '2', '3', '4', '5', '6', '7'];
+    
+    // Only change when train is offscreen to avoid visual glitches
+    const trainPosition = $('.subway-train').css('left');
+    if (parseFloat(trainPosition) < 0 || parseFloat(trainPosition) > $(window).width()) {
+      const randomTrain = trainColors[Math.floor(Math.random() * trainColors.length)];
+      const randomRoute = routes[Math.floor(Math.random() * routes.length)];
+      
+      $('.subway-train').css('background-color', randomTrain);
+      $('.route-indicator').text(randomRoute);
+      
+      // Adjust route indicator color based on line
+      if (['N', 'Q', 'R', 'W'].includes(randomRoute)) {
+        $('.route-indicator').css({
+          'background-color': 'var(--mta-yellow)',
+          'color': 'black'
+        });
+      } else if (['1', '2', '3'].includes(randomRoute)) {
+        $('.route-indicator').css({
+          'background-color': 'var(--mta-red)',
+          'color': 'white'
+        });
+      } else if (['4', '5', '6'].includes(randomRoute)) {
+        $('.route-indicator').css({
+          'background-color': 'var(--mta-green)',
+          'color': 'white'
+        });
+      } else if (['A', 'C', 'E'].includes(randomRoute)) {
+        $('.route-indicator').css({
+          'background-color': 'var(--mta-blue)',
+          'color': 'white'
+        });
+      } else if (['B', 'D', 'F', 'M'].includes(randomRoute)) {
+        $('.route-indicator').css({
+          'background-color': 'var(--mta-orange)',
+          'color': 'white'
+        });
+      } else if (['7'].includes(randomRoute)) {
+        $('.route-indicator').css({
+          'background-color': 'var(--mta-purple)',
+          'color': 'white'
+        });
+      }
+    }
+  }, 10000); // Check every 10 seconds
+});
+</script>

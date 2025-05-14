@@ -1,0 +1,503 @@
+/* Variables */
+:root {
+  --mta-blue: #0039A6;
+  --mta-yellow: #FCCC0A;
+  --mta-orange: #FF6319;
+  --mta-green: #00933C;
+  --mta-purple: #B933AD;
+  --mta-red: #EE352E;
+  --mta-gray: #808183;
+  --background: #FFFFFF;
+  --text-color: #333333;
+  --sidebar-bg: #f2f5fa;
+  --code-bg: #f8f8f8;
+  --border-color: #e2e8f0;
+  --highlight-color: #f1f5f9;
+}
+
+/* Base theme */
+body {
+  font-family: 'Open Sans', sans-serif;
+  background-color: var(--background);
+  color: var(--text-color);
+  line-height: 1.7;
+  font-size: 16px;
+}
+
+/* Header styling */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  margin-top: 1.5em;
+  margin-bottom: 0.8em;
+  line-height: 1.3;
+}
+
+/* Title styling */
+h1.title {
+  font-size: 2.8rem;
+  text-align: center;
+  margin-top: 1.5em;
+  margin-bottom: 0.8em;
+  position: relative;
+  padding-bottom: 0.5em;
+  color: var(--mta-blue);
+  border-bottom: none;
+}
+
+/* NYC subway line decoration below title */
+h1.title::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 25%;
+  width: 50%;
+  height: 8px;
+  background: linear-gradient(to right,
+    var(--mta-blue) 0%, var(--mta-blue) 16.6%,
+    var(--mta-orange) 16.6%, var(--mta-orange) 33.2%,
+    var(--mta-yellow) 33.2%, var(--mta-yellow) 49.8%,
+    var(--mta-green) 49.8%, var(--mta-green) 66.4%,
+    var(--mta-purple) 66.4%, var(--mta-purple) 83%,
+    var(--mta-red) 83%, var(--mta-red) 100%);
+  border-radius: 4px;
+}
+
+/* Section headers with subway line indicator */
+h2 {
+  font-size: 1.8rem;
+  position: relative;
+  padding-left: 15px;
+  border-left: 6px solid var(--mta-blue);
+  margin-top: 2.5em;
+}
+
+h3 {
+  font-size: 1.4rem;
+  color: var(--mta-gray);
+}
+
+/* Table of contents styling */
+#TOC {
+  position: sticky;
+  top: 20px;
+  background: var(--sidebar-bg);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border-left: 5px solid var(--mta-orange);
+}
+
+#TOC .toc-title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--mta-blue);
+  margin-bottom: 15px;
+  padding-bottom: 5px;
+  border-bottom: 2px solid var(--mta-orange);
+}
+
+#TOC ul {
+  padding-left: 20px;
+  list-style-type: none;
+}
+
+#TOC ul li {
+  padding: 3px 0;
+  font-size: 0.95rem;
+}
+
+#TOC ul li a {
+  color: var(--text-color);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+#TOC ul li a:hover {
+  color: var(--mta-blue);
+  text-decoration: underline;
+}
+
+/* Code folding styling (preserve functionality) */
+.code-folding-btn {
+  margin-bottom: 10px;
+  border-radius: 4px;
+  background-color: var(--mta-blue);
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.8rem;
+  transition: background-color 0.2s;
+}
+
+.code-folding-btn:hover {
+  background-color: var(--mta-orange);
+}
+
+.sourceCode {
+  background-color: var(--code-bg);
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-left: 4px solid var(--mta-gray);
+}
+
+/* Content layout */
+.main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Tables - mimicking subway sign aesthetics */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 25px 0;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+}
+
+thead {
+  background-color: var(--mta-blue);
+  color: white;
+}
+
+th {
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+}
+
+td {
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:nth-child(even) {
+  background-color: var(--highlight-color);
+}
+
+/* Enhanced figure/image styling */
+figure {
+  margin: 25px 0;
+  text-align: center;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+figure figcaption {
+  font-size: 0.9rem;
+  color: var(--mta-gray);
+  margin-top: 10px;
+}
+
+/* ggplot customization via the css */
+.plot-container {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 25px 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease;
+}
+
+.plot-container:hover {
+  transform: translateY(-5px);
+}
+
+/* Print styles */
+@media print {
+  :root {
+    --background: white;
+    --text-color: black;
+  }
+  
+  #TOC {
+    position: static;
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+  
+  .plot-container {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+}
+
+/* Special styling for analysis sections */
+.analysis-box {
+  background-color: var(--highlight-color);
+  border-left: 5px solid var(--mta-green);
+  padding: 15px 20px;
+  margin: 20px 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.results-box {
+  background-color: var(--highlight-color);
+  border-left: 5px solid var(--mta-purple);
+  padding: 15px 20px;
+  margin: 20px 0;
+  border-radius: 0 8px 8px 0;
+}
+
+/* Special animated NYC skyline footer */
+.nyc-skyline-footer {
+  height: 100px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 120"><path d="M0,100 L50,100 L60,80 L80,90 L100,60 L120,80 L140,30 L160,70 L180,50 L200,70 L220,40 L240,60 L260,50 L280,70 L300,60 L320,80 L340,50 L360,70 L380,30 L400,50 L420,60 L440,40 L460,70 L480,50 L500,60 L520,30 L540,80 L560,60 L580,70 L600,40 L620,70 L640,50 L660,60 L680,80 L700,40 L720,60 L740,50 L760,80 L780,60 L800,70 L820,30 L840,60 L860,50 L880,70 L900,40 L920,60 L940,30 L960,50 L980,80 L1000,90 L1000,120 L0,120 Z" fill="%230039A6"/></svg>');
+  background-size: cover;
+  margin-top: 50px;
+  position: relative;
+}
+
+.nyc-skyline-footer::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 20px;
+  background: linear-gradient(to right,
+    var(--mta-blue) 0%, var(--mta-blue) 16.6%,
+    var(--mta-orange) 16.6%, var(--mta-orange) 33.2%,
+    var(--mta-yellow) 33.2%, var(--mta-yellow) 49.8%,
+    var(--mta-green) 49.8%, var(--mta-green) 66.4%,
+    var(--mta-purple) 66.4%, var(--mta-purple) 83%,
+    var(--mta-red) 83%, var(--mta-red) 100%);
+}
+
+/* Font imports */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap');
+
+/* Subway Animation Styles */
+.subway-animation-container {
+  position: relative;
+  height: 120px;
+  overflow: hidden;
+  background-color: #f2f5fa;
+  border-radius: 8px;
+  margin: 30px 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.subway-track {
+  position: absolute;
+  bottom: 30px;
+  width: 100%;
+  height: 10px;
+  background-color: #333;
+}
+
+.subway-station {
+  position: absolute;
+  bottom: 40px;
+  width: 80px;
+  height: 20px;
+  background-color: var(--mta-gray);
+  border-radius: 5px 5px 0 0;
+}
+
+.station-left {
+  left: 10%;
+}
+
+.station-right {
+  right: 10%;
+}
+
+.station-label {
+  position: absolute;
+  bottom: 5px;
+  font-size: 10px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  width: 100%;
+}
+
+.subway-train {
+  position: absolute;
+  bottom: 40px;
+  width: 180px;
+  height: 40px;
+  background-color: var(--mta-blue);
+  border-radius: 5px;
+  animation: trainMovement 10s linear infinite;
+  z-index: 10;
+}
+
+.train-window {
+  position: absolute;
+  top: 8px;
+  width: 25px;
+  height: 15px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 3px;
+}
+
+.window-1 { left: 15px; }
+.window-2 { left: 50px; }
+.window-3 { left: 85px; }
+.window-4 { left: 120px; }
+.window-5 { left: 155px; }
+
+.train-door {
+  position: absolute;
+  bottom: 0;
+  width: 30px;
+  height: 25px;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.door-1 { left: 35px; }
+.door-2 { left: 105px; }
+
+.train-light {
+  position: absolute;
+  top: 15px;
+  left: 5px;
+  width: 6px;
+  height: 6px;
+  background-color: var(--mta-yellow);
+  border-radius: 50%;
+  box-shadow: 0 0 10px 2px var(--mta-yellow);
+}
+
+.route-indicator {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  background-color: var(--mta-orange);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.mta-logo-container {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  width: 100px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mta-logo {
+  width: 60px;
+  height: 60px;
+  background-color: var(--mta-blue);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes trainMovement {
+  0% {
+    left: -180px;
+  }
+  45% {
+    left: calc(10% - 90px);
+  }
+  55% {
+    left: calc(10% - 90px);
+  }
+  95% {
+    left: calc(90% - 90px);
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+}
+
+/* Line markers used in the page */
+.line-marker {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  line-height: 24px;
+  margin-right: 8px;
+}
+
+.line-1, .line-2, .line-3 { background-color: var(--mta-red); }
+.line-4, .line-5, .line-6 { background-color: var(--mta-green); }
+.line-n, .line-q, .line-r, .line-w { background-color: var(--mta-yellow); color: black; }
+.line-b, .line-d, .line-f, .line-m { background-color: var(--mta-orange); }
+.line-a, .line-c, .line-e { background-color: var(--mta-blue); }
+.line-g { background-color: var(--mta-green); }
+.line-l { background-color: var(--mta-gray); }
+.line-j, .line-z { background-color: var(--mta-orange); }
+.line-7 { background-color: var(--mta-purple); }
+
+/* Fix for plot images and output */
+.plot img, .plot, .ggplot {
+  max-width: 100%;
+  display: block;
+}
+
+/* Ensure R output is visible */
+pre.r, pre.python {
+  background-color: var(--code-bg);
+  padding: 10px;
+  border-radius: 5px;
+}
+
+/* Ensure output is visible */
+.kable_wrapper {
+  overflow-x: auto;
+}
+
+/* Make sure knitr output is visible */
+.knitr_output {
+  max-width: 100%;
+  overflow-x: auto;
+}
