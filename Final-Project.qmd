@@ -118,14 +118,49 @@ time_slot_analysis <- read_csv("data/finalproject/time_slot_analysis.csv", show_
 
 
 ```
+## **Executive Summary**
+**Financial Impact of Remote Work on MTA: NYC Subway Ridership**
 
+The COVID-19 pandemic triggered profound changes in New York City's subway ridership patterns that persist well beyond the initial health crisis. This analysis examines the specific financial impact of remote work on the Metropolitan Transportation Authority (MTA) between 2019 and 2023, revealing structural changes in commuter behavior with significant revenue implications.
+
+**Key findings include:**
+
+**Persistent Recovery Gap:** By 2023, subway ridership had recovered to only 70% of pre-pandemic levels, with a notable 10.2 percentage point gap between weekend recovery (77.3%) and weekday recovery (67.1%), directly attributable to remote work.
+
+**Substantial Revenue Loss:** MTA experienced approximately $8.8 billion in cumulative fare revenue losses between 2020-2023, with an estimated $2.5-3.0 billion specifically attributable to remote work practices.
+
+**Changing Commute Patterns:** Time slot analysis reveals significant shifts in traditional commuting patterns, with morning rush hours showing weaker recovery than evening rush hours, consistent with hybrid work arrangements.
+
+**Daily Ridership Impact:** Approximately 541,540 daily subway riders were lost to remote work in 2023 alone, representing about 31% of the total ridership decline from pre-pandemic levels.
+
+**Annual Remote Work Impact:** The financial impact specifically attributable to remote work in 2023 was approximately $379.8 million in lost fare revenue.
+
+
+## **Introduction**
+**Overarching Question**
+
+The pandemic disrupted NYC's subway system, raising a critical question: How much revenue has the MTA lost specifically due to remote work between 2019-2023?
+
+This question distinguishes temporary disruptions from permanent changes in commuter behavior and Quantifies financial impacts for MTA's long-term planning
+Reveals how evolving work patterns are reshaping urban mobility needs.
+
+**The Specific Question Being Answered in this analysis include:**
+
+This analysis isolates remote work's contribution to the MTA's revenue shortfall by comparing weekday versus weekend recovery rates and analyzing time-of-day ridership patterns.
+
+We examine:
+
+- **Differences between weekday and weekend recovery patterns**
+- **Shifts in rush hour versus non-peak ridership**
+- **Financial implications based on reconstructed ridership scenarios**
+
+The findings provide actionable insights for the MTA's strategic planning as remote and hybrid work become permanent features of NYC's economic landscape.
 
 ## **Dataset Description**
 
 This analysis uses two complementary datasets from the New York City Metropolitan Transportation Authority (MTA):
 
 1. **Daily Ridership Dataset**: Contains 1,776 observations from March 1, 2020 through January 9, 2025, tracking daily ridership across various transportation modes. Key metrics include total estimated ridership and percentage of **comparable pre-pandemic day for subways**. The dataset includes temporal variables (day of week, month, year, quarter) that enable trend analysis over time.
-
 
 
 2. **Time Slot Analysis Dataset**: Original dataset contained **110M rows of data**, which was then converted into Time slot Analysis, Containing **6,519 observations** from July 1, 2020 through December 31, 2024, breaking down ridership by time of day. The dataset categorizes travel into four time slots: Morning Rush (6AM-10AM), Midday (10AM-3PM), Evening Rush (3PM-7PM), and Off-Hours (7PM-6AM). It also distinguishes between weekday and weekend ridership, with information on total ridership and unique stations used during each time period.
