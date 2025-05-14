@@ -160,10 +160,11 @@ The findings provide actionable insights for the MTA's strategic planning as rem
 
 This analysis uses two complementary datasets from the New York City Metropolitan Transportation Authority (MTA):
 
-1. **Daily Ridership Dataset**: Contains 1,776 observations from March 1, 2020 through January 9, 2025, tracking daily ridership across various transportation modes. Key metrics include total estimated ridership and percentage of **comparable pre-pandemic day for subways**. The dataset includes temporal variables (day of week, month, year, quarter) that enable trend analysis over time.
+1. **Daily Ridership Dataset**: Contains 1,776 observations from March 1, 2020 through January 9, 2025, tracking daily ridership across various transportation modes. Key metrics include total estimated ridership and percentage of **comparable pre-pandemic day for subways**. The dataset includes temporal variables (day of week, month, year, quarter) that enable trend analysis over time. [click here to see how to download data](https://github.com/Vihan-Raghuvanshi/STA9750-2025-SPRING/blob/main/FinalProject.R#L24) 
 
 
 2. **Time Slot Analysis Dataset**: Original dataset contained **110M rows of data**, which was then converted into Time slot Analysis, Containing **6,519 observations** from July 1, 2020 through December 31, 2024, breaking down ridership by time of day. The dataset categorizes travel into four time slots: Morning Rush (6AM-10AM), Midday (10AM-3PM), Evening Rush (3PM-7PM), and Off-Hours (7PM-6AM). It also distinguishes between weekday and weekend ridership, with information on total ridership and unique stations used during each time period.
+[click here to see how to download dataset](https://github.com/Vihan-Raghuvanshi/STA9750-2025-SPRING/blob/main/FinalProject.R#L552)
 
 These datasets are particularly valuable because they include the percentage comparison to pre-pandemic levels, allowing us to reconstruct what ridership would have been without the pandemic disruption. This feature enables accurate calculation of revenue impacts and helps isolate the effect of remote work based on different time slots when the ridership increased/decreased.
 
