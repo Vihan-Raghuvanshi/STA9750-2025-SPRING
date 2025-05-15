@@ -1030,7 +1030,13 @@ kable(
 *Daily Impact:* Approximately 541,540 daily subway riders lost to remote work in 2023
 Revenue Loss: $379.8 million annual revenue impact (based on $2.80 average fare × 250 weekdays)
 
-*Attribution:* Remote work accounts for 31% of total ridership decline from pre-pandemic levels
+*Attribution:* Remote work accounts for 31% of total ridership decline from pre-pandemic levels.
+
+Logic behind the analysis: Total decline: 30% gap between current (70%) and pre-pandemic (100%) ridership. Remote work impact: 10.2 percentage point difference between weekend (77.3%) and weekday (67.1%) recovery.
+
+Calculation: (10.2 ÷ 30) × 100 ≈ 31%
+
+This isolates remote work's specific contribution from other factors by using weekends (largely leisure travel) as a control group against weekdays (work commutes).
 
 **Cumulative Impact: Estimated $2.5-3.0 billion in remote work-specific fare revenue loss from 2020-2023, representing a significant portion of the total $8.8 billion shortfall**
 
