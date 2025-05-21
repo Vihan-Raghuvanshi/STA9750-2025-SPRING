@@ -261,7 +261,7 @@ dygraph(ridership_xts, main = "NYC Subway Ridership Recovery (2019-2023)") %>%
               hideOnMouseOut = FALSE) %>%
   dyRangeSelector(height = 30) %>%
   dyCrosshair(direction = "vertical") %>%
-  dyLegend(width = 400)  # Removed reference to custom.css file
+  dyLegend(width = 400)  
 
 ```
 
@@ -643,6 +643,9 @@ p <- plot_ly(height = 450, width = 600) %>%  # Further reduced width
 
 # Display the interactive plot
 p
+# Create plots directory if it doesn't exist
+if (!dir.exists("plots")) dir.create("plots")
+ggsave("plots/p.png")
 ```
 
 ## **Analysis 4: Time Slot Analysis (Remote Work Indicator)**
@@ -958,6 +961,7 @@ for (slot in unique(time_slot_long$time_slot)) {
 
 # Display the interactive plot
 plot_interactive
+ggsave("plots/plot_interactive.png")
 ```
 
 ## **Focus on the BIG Question**
