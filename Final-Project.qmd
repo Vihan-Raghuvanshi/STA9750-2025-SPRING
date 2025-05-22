@@ -238,7 +238,15 @@ ridership_xts <- xts(
 colnames(ridership_xts) <- c("Daily Ridership", "% of Pre-Pandemic")
 
 # Create interactive dygraph
-dygraph(ridership_xts, main = "NYC Subway Ridership Recovery (2019-2023)") %>%
+#| code-fold: true
+#| warning: false
+#| message: false
+
+# Your existing code up to the dygraph creation...
+# (all the data preparation code stays the same)
+
+# Create interactive dygraph AND assign it to a variable
+ridership_plot <- dygraph(ridership_xts, main = "NYC Subway Ridership Recovery (2019-2023)") %>%
   dySeries("Daily Ridership", label = "Daily Ridership", color = mta_blue, 
            fillGraph = TRUE, strokeWidth = 2.5) %>%
   dySeries("% of Pre-Pandemic", label = "% of Pre-Pandemic", color = mta_red, 
@@ -261,8 +269,14 @@ dygraph(ridership_xts, main = "NYC Subway Ridership Recovery (2019-2023)") %>%
               hideOnMouseOut = FALSE) %>%
   dyRangeSelector(height = 30) %>%
   dyCrosshair(direction = "vertical") %>%
-  dyLegend(width = 400)  
+  dyLegend(width = 400)
 
+# Display the plot
+ridership_plot
+
+# Save the plot as HTML
+library(htmlwidgets)
+saveWidget(ridership_plot, "mta_ridership_interactive.html", selfcontained = TRUE)
 ```
 
 ## **Analysis 2: Weekday vs. Weekend Ridership Recovery**
@@ -643,9 +657,7 @@ p <- plot_ly(height = 450, width = 600) %>%  # Further reduced width
 
 # Display the interactive plot
 p
-# Create plots directory if it doesn't exist
-if (!dir.exists("plots")) dir.create("plots")
-ggsave("plots/p.png")
+saveWidget(p, "mta_revenue_impact_interactive.html", selfcontained = TRUE)
 ```
 
 ## **Analysis 4: Time Slot Analysis (Remote Work Indicator)**
@@ -961,7 +973,8 @@ for (slot in unique(time_slot_long$time_slot)) {
 
 # Display the interactive plot
 plot_interactive
-ggsave("plots/plot_interactive.png")
+
+saveWidget(plot_interactive, "mta_time_slot_ridership_interactive.html", selfcontained = TRUE)
 ```
 
 ## **Focus on the BIG Question**

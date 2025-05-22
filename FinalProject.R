@@ -548,14 +548,11 @@ remote_work_table_formatted
 print(plot_attribution)
 print(plot_overall_attribution)
 
-# Function to download MTA Subway Hourly Ridership data
+# Function to download MTA Subway Hourly Ridership data in batches and save to separate files
 download_mta_ridership_data <- function() {
   # Create directory if it doesn't exist
-  dir_name <- file.path("data", "finalproject")
+  dir_name <- file.path("data", "finalproject", "mta_batches")
   dir.create(dir_name, showWarnings = FALSE, recursive = TRUE)
-  
-  # Define output file paths
-  output_file <- file.path(dir_name, "mta_subway_hourly_ridership.csv")
   
   # Load required packages
   if(!require("httr2")) install.packages("httr2")
@@ -570,166 +567,541 @@ download_mta_ridership_data <- function() {
   if(!require("readr")) install.packages("readr")
   library(readr)
   
-  # Get existing data if available
-  if(file.exists(output_file)) {
-    cat("Found existing data file. Checking for additional data sources...\n")
-    existing_data <- TRUE
-  } else {
-    existing_data <- FALSE
-  }
+  # Check for existing metadata file
+  metadata_file <- file.path("data", "finalproject", "mta_ridership_metadata.csv")
+  existing_metadata <- NULL
+  last_offset <- 0
+  last_batch <- 0
   
-  # API endpoints for MTA Subway Hourly Ridership data - try multiple sources
-  # The original endpoint you were using
-  ENDPOINTS <- c(
-    "https://data.ny.gov/resource/wujg-7c2s.json",  # 2020-2024 dataset
-  )
-  
-  # Use a file connection to write data incrementally
-  temp_file <- file.path(dir_name, "mta_ridership_additional.csv")
-  
-  # Track if we found any additional data
-  found_additional_data <- FALSE
-  
-  # Try each endpoint
-  for(endpoint_idx in 1:length(ENDPOINTS)) {
-    ENDPOINT <- ENDPOINTS[endpoint_idx]
-    cat("Trying endpoint:", ENDPOINT, "\n")
-    
-    # Reduce batch size to prevent timeouts
-    BATCH_SIZE <- 100000
-    OFFSET <- 0
-    END_OF_EXPORT <- FALSE
-    first_batch <- FALSE
-    
-    # Download data in batches with retry logic
-    while(!END_OF_EXPORT) {
-      cat("Requesting items", OFFSET, "to", BATCH_SIZE + OFFSET, "from endpoint", endpoint_idx, "\n")
-      
-      # Add retry logic
-      max_retries <- 3
-      retry_count <- 0
-      success <- FALSE
-      
-      while(!success && retry_count < max_retries) {
-        tryCatch({
-          req <- request(ENDPOINT) |>
-            req_url_query(`$limit` = BATCH_SIZE,
-                          `$offset` = OFFSET) |>
-            req_timeout(300)  # Set a reasonable timeout (5 minutes)
-          
-          resp <- req_perform(req)
-          
-          # Set flatten=TRUE to handle nested structures
-          batch_data <- fromJSON(resp_body_string(resp), flatten = TRUE)
-          
-          # If we got here, the request was successful
-          success <- TRUE
-          
-          # Check if any data was returned
-          if(NROW(batch_data) > 0) {
-            # Convert any list columns to character
-            for(col in names(batch_data)) {
-              if(is.list(batch_data[[col]])) {
-                batch_data[[col]] <- sapply(batch_data[[col]], 
-                                            function(x) if(length(x) == 0) NA else paste(x, collapse=","))
-              }
-            }
-            
-            # Append to CSV directly instead of keeping in memory
-            if(!first_batch) {
-              write_csv(batch_data, temp_file)
-              first_batch <- TRUE
-              found_additional_data <- TRUE
-            } else {
-              write_csv(batch_data, temp_file, append = TRUE)
-            }
-            
-            # Force memory cleanup
-            rm(batch_data)
-            gc()
-          }
-          
-          # Check if we've reached the end for this endpoint
-          if(NROW(batch_data) < BATCH_SIZE) {
-            END_OF_EXPORT <- TRUE
-            cat("End of Data Export Reached for endpoint", endpoint_idx, "\n")
-          } else {
-            OFFSET <- OFFSET + BATCH_SIZE
-          }
-        }, error = function(e) {
-          retry_count <- retry_count + 1
-          cat("Error on attempt", retry_count, "for endpoint", endpoint_idx, ":", conditionMessage(e), "\n")
-          
-          # If memory limit error, try to free memory
-          if(grepl("memory limit", conditionMessage(e))) {
-            gc()  # Force garbage collection
-            cat("Memory limit reached. Attempting to free memory...\n")
-          }
-          
-          # If we get a 404 or other API error, end this endpoint
-          if(grepl("404", conditionMessage(e)) || 
-             grepl("403", conditionMessage(e)) || 
-             grepl("401", conditionMessage(e))) {
-            cat("API error. Moving to next endpoint.\n")
-            END_OF_EXPORT <- TRUE
-            success <- TRUE  # Mark as success to break retry loop
-          } else {
-            cat("Retrying in 5 seconds...\n")
-            Sys.sleep(5)
-          }
-        })
-      }
-      
-      # Check if all retries failed
-      if(!success) {
-        cat("Failed after", max_retries, "attempts for endpoint", endpoint_idx, ". Moving to next endpoint.\n")
-        break
-      }
+  if(file.exists(metadata_file)) {
+    existing_metadata <- read_csv(metadata_file, show_col_types = FALSE)
+    if(nrow(existing_metadata) > 0) {
+      last_batch <- max(existing_metadata$batch_number)
+      last_offset <- max(existing_metadata$offset) + max(existing_metadata$rows[existing_metadata$offset == max(existing_metadata$offset)])
+      cat("Found existing metadata with", nrow(existing_metadata), "batches.\n")
+      cat("Will resume from batch", last_batch + 1, "with offset", last_offset, "\n")
     }
   }
   
-  # Check if we found additional data
-  if(found_additional_data) {
-    cat("Found additional data. Merging with existing data...\n")
-    
-    # If we already have existing data, merge the files
-    if(existing_data) {
-      # Load existing and new data
-      cat("Reading existing data...\n")
-      existing_df <- read_csv(output_file, show_col_types = FALSE)
-      cat("Reading additional data...\n")
-      additional_df <- read_csv(temp_file, show_col_types = FALSE)
-      
-      # Write merged data
-      cat("Writing merged dataset...\n")
-      write_csv(all_df, file.path(dir_name, "mta_subway_hourly_ridership_complete.csv"))
-      
-      # Clean up
-      rm(existing_df, additional_df, all_df)
-      gc()
-      
-      # Return a sample
-      return(read_csv(file.path(dir_name, "mta_subway_hourly_ridership_complete.csv"), 
-                      n_max = 1000, show_col_types = FALSE))
-    } else {
-      # Just rename the temp file to the output file
-      file.rename(temp_file, output_file)
-      cat("Data export complete and saved to", output_file, "\n")
-      
-      # Return a sample
-      return(read_csv(output_file, n_max = 1000, show_col_types = FALSE))
-    }
+  # Initialize metadata if it doesn't exist
+  if(is.null(existing_metadata)) {
+    metadata <- data.frame(batch_number = integer(),
+                           offset = integer(),
+                           rows = integer(),
+                           filename = character(),
+                           stringsAsFactors = FALSE)
   } else {
-    cat("No additional data found from any endpoint.\n")
-    if(existing_data) {
-      cat("Using existing data file:", output_file, "\n")
-      return(read_csv(output_file, n_max = 1000, show_col_types = FALSE))
+    metadata <- existing_metadata
+  }
+  
+  # API endpoint for MTA Subway Hourly Ridership data
+  ENDPOINT <- "https://data.ny.gov/resource/wujg-7c2s.json"
+  
+  # Define the specific columns we want to retrieve
+  COLUMNS <- c("transit_timestamp", "transit_mode", "station_complex_id", 
+               "station_complex", "borough", "payment_method", "ridership")
+  
+  # Create a $select query parameter to only get the columns we need
+  select_query <- paste(COLUMNS, collapse=",")
+  
+  # Batch size and starting offset
+  BATCH_SIZE <- 50000  # Reduced to improve reliability
+  OFFSET <- last_offset
+  BATCH_COUNT <- last_batch
+  END_OF_EXPORT <- FALSE
+  
+  # Download data in batches with retry logic
+  while(!END_OF_EXPORT) {
+    cat("Requesting items", OFFSET, "to", BATCH_SIZE + OFFSET, "\n")
+    
+    # Add retry logic
+    max_retries <- 3
+    retry_count <- 0
+    success <- FALSE
+    
+    while(!success && retry_count < max_retries) {
+      tryCatch({
+        req <- request(ENDPOINT) |>
+          req_url_query(`$limit` = BATCH_SIZE,
+                        `$offset` = OFFSET,
+                        `$select` = select_query) |>
+          req_timeout(300)  # Set a reasonable timeout (5 minutes)
+        
+        resp <- req_perform(req)
+        
+        # Set flatten=TRUE to handle nested structures
+        batch_data <- fromJSON(resp_body_string(resp), flatten = TRUE)
+        
+        # If we got here, the request was successful
+        success <- TRUE
+        
+        # Check if any data was returned
+        if(NROW(batch_data) > 0) {
+          # Convert any list columns to character
+          for(col in names(batch_data)) {
+            if(is.list(batch_data[[col]])) {
+              batch_data[[col]] <- sapply(batch_data[[col]], 
+                                          function(x) if(length(x) == 0) NA else paste(x, collapse=","))
+            }
+          }
+          
+          # Increment batch count
+          BATCH_COUNT <- BATCH_COUNT + 1
+          
+          # Define batch filename
+          batch_filename <- sprintf("mta_ridership_batch_%04d.csv", BATCH_COUNT)
+          batch_filepath <- file.path(dir_name, batch_filename)
+          
+          # Write batch to individual CSV file
+          write_csv(batch_data, batch_filepath)
+          
+          # Update metadata
+          new_row <- data.frame(batch_number = BATCH_COUNT,
+                                offset = OFFSET,
+                                rows = NROW(batch_data),
+                                filename = batch_filename,
+                                stringsAsFactors = FALSE)
+          metadata <- rbind(metadata, new_row)
+          
+          # Write updated metadata
+          write_csv(metadata, metadata_file)
+          
+          cat("Saved batch", BATCH_COUNT, "with", NROW(batch_data), "rows to", batch_filepath, "\n")
+        }
+        
+        # Check if we've reached the end
+        if(NROW(batch_data) < BATCH_SIZE) {
+          END_OF_EXPORT <- TRUE
+          cat("End of Data Export Reached\n")
+        } else {
+          OFFSET <- OFFSET + BATCH_SIZE
+        }
+      }, error = function(e) {
+        retry_count <- retry_count + 1
+        cat("Error on attempt", retry_count, ":", conditionMessage(e), "\n")
+        cat("Retrying in 5 seconds...\n")
+        Sys.sleep(5)
+      })
+    }
+    
+    # Check if all retries failed
+    if(!success) {
+      cat("Failed after", max_retries, "attempts. Saving metadata and exiting.\n")
+      write_csv(metadata, metadata_file)
+      break
+    }
+  }
+  
+  # Create convenience function for reading all batches
+  read_all_batches <- function() {
+    if(file.exists(metadata_file)) {
+      metadata <- read_csv(metadata_file, show_col_types = FALSE)
+      all_data <- data.frame()
+      
+      for(i in 1:nrow(metadata)) {
+        cat("Reading batch", i, "of", nrow(metadata), "\n")
+        batch_file <- file.path(dir_name, metadata$filename[i])
+        batch_data <- read_csv(batch_file, show_col_types = FALSE)
+        
+        if(NROW(all_data) == 0) {
+          all_data <- batch_data
+        } else {
+          all_data <- rbind(all_data, batch_data)
+        }
+      }
+      
+      return(all_data)
     } else {
-      cat("No data was retrieved. Check your connection or API endpoint.\n")
+      cat("No metadata file found. Cannot read batches.\n")
       return(NULL)
     }
   }
+  
+  # Save the read_all_batches function as an RDS file for later use
+  saveRDS(read_all_batches, file.path("data", "finalproject", "read_all_batches.rds"))
+  
+  # Return metadata
+  cat("Download complete:", BATCH_COUNT, "batches saved.\n")
+  cat("Use readRDS('data/finalproject/read_all_batches.rds')() to read all batches.\n")
+  return(metadata)
 }
 
 # Call the function to download the data
-mta_data <- download_mta_ridership_data()
+mta_metadata <- download_mta_ridership_data()
+
+####################
+library(dplyr)
+library(lubridate)
+library(readr)
+
+# Function to process a batch file and categorize by time slot
+process_batch_by_time <- function(batch_file) {
+  batch_data <- read_csv(batch_file, show_col_types = FALSE)
+  
+  # Convert the timestamp to a datetime
+  batch_data <- batch_data %>%
+    mutate(transit_datetime = as_datetime(transit_timestamp),
+           hour = hour(transit_datetime),
+           # Create time slot category
+           time_slot = case_when(
+             hour >= 6 & hour < 10 ~ "Morning Rush (6AM-10AM)",
+             hour >= 10 & hour < 15 ~ "Midday (10AM-3PM)",
+             hour >= 15 & hour < 19 ~ "Evening Rush (3PM-7PM)",
+             TRUE ~ "Off-Hours (7PM-6AM)"
+           ),
+           # Also add a day type for weekday/weekend analysis
+           is_weekday = if_else(wday(transit_datetime) %in% 2:6, "Weekday", "Weekend"),
+           # Extract date for time series analysis
+           date = as_date(transit_datetime)
+    )
+  
+  return(batch_data)
+}
+
+# Function to summarize ridership by time slot across all batches
+analyze_time_slots <- function() {
+  # Read the metadata
+  metadata <- read_csv("data/finalproject/mta_ridership_metadata.csv", show_col_types = FALSE)
+  
+  # Initialize results dataframe
+  results <- data.frame()
+  
+  # Process each batch
+  for(i in 1:nrow(metadata)) {
+    batch_file <- file.path("data/finalproject/mta_batches", metadata$filename[i])
+    
+    # Process this batch
+    batch_result <- process_batch_by_time(batch_file) %>%
+      group_by(date, time_slot, is_weekday) %>%
+      summarize(total_ridership = sum(ridership, na.rm = TRUE),
+                station_count = n_distinct(station_complex_id),
+                .groups = "drop")
+    
+    # Append to results
+    results <- bind_rows(results, batch_result)
+    
+    # Print progress
+    if(i %% 100 == 0 || i == nrow(metadata)) {
+      cat("Processed", i, "of", nrow(metadata), "batches\n")
+    }
+  }
+  
+  # Aggregate by date and time slot
+  final_results <- results %>%
+    group_by(date, time_slot, is_weekday) %>%
+    summarize(total_ridership = sum(total_ridership),
+              unique_stations = sum(station_count),
+              .groups = "drop")
+  
+  return(final_results)
+}
+
+# Run the analysis
+time_slot_analysis <- analyze_time_slots()
+
+# Save the results
+write_csv(time_slot_analysis, "data/finalproject/time_slot_analysis.csv")
+
+
+# Load the saved analysis if it's not already in memory
+time_slot_analysis <- read_csv("data/finalproject/time_slot_analysis.csv", show_col_types = FALSE)
+
+# Get a quick glimpse of the data structure
+glimpse(time_slot_analysis)
+glimpse(daily_ridership)
+
+
+# Load required libraries
+library(knitr)
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+library(scales)
+
+# 1. RIDERSHIP ANALYSIS: How has total MTA ridership changed from 2019 to 2023?
+# Create year and month columns for easier aggregation
+daily_ridership$year_month <- format(daily_ridership$Date, "%Y-%m")
+
+# Calculate yearly averages for subway only
+yearly_subway_ridership <- daily_ridership %>%
+  group_by(year) %>%
+  summarize(
+    `Avg Daily Ridership` = mean(`Subways: Total Estimated Ridership`),
+    `% of Pre-Pandemic Level` = mean(`Subways: % of Comparable Pre-Pandemic Day`) * 100
+  ) %>%
+  filter(year <= 2023) %>%  # Filter to years through 2023
+  as.data.frame()
+
+# Format for better readability
+yearly_subway_ridership$`Avg Daily Ridership` <- round(yearly_subway_ridership$`Avg Daily Ridership`, 0)
+yearly_subway_ridership$`% of Pre-Pandemic Level` <- round(yearly_subway_ridership$`% of Pre-Pandemic Level`, 1)
+
+# Display table
+print("Yearly Subway Ridership (with % of Pre-Pandemic Levels):")
+kable(yearly_subway_ridership, format = "markdown")
+
+# Visualization for yearly ridership
+plot1 <- ggplot(yearly_subway_ridership, aes(x = as.factor(year))) +
+  geom_col(aes(y = `Avg Daily Ridership`/1000000), fill = "steelblue") +
+  geom_line(aes(y = `% of Pre-Pandemic Level`/20, group = 1), color = "red", size = 1.5) +
+  geom_point(aes(y = `% of Pre-Pandemic Level`/20), color = "red", size = 3) +
+  scale_y_continuous(
+    name = "Average Daily Ridership (Millions)",
+    sec.axis = sec_axis(~.*20, name = "% of Pre-Pandemic Level")
+  ) +
+  labs(
+    title = "NYC Subway Ridership Recovery by Year",
+    subtitle = "Average daily ridership and percentage of pre-pandemic levels",
+    x = "Year",
+    caption = "Source: MTA Ridership Data"
+  ) +
+  theme_minimal()
+
+print(plot1)
+
+# 2. Analyze weekday vs weekend patterns for subway only
+weekday_weekend_analysis <- daily_ridership %>%
+  group_by(year, is_weekend) %>%
+  summarize(
+    `Avg Daily Ridership` = mean(`Subways: Total Estimated Ridership`),
+    `% of Pre-Pandemic Level` = mean(`Subways: % of Comparable Pre-Pandemic Day`) * 100
+  ) %>%
+  filter(year <= 2023) %>%  # Filter to years through 2023
+  as.data.frame()
+
+# Format for better readability
+weekday_weekend_analysis$`Avg Daily Ridership` <- round(weekday_weekend_analysis$`Avg Daily Ridership`, 0)
+weekday_weekend_analysis$`% of Pre-Pandemic Level` <- round(weekday_weekend_analysis$`% of Pre-Pandemic Level`, 1)
+weekday_weekend_analysis$is_weekend <- ifelse(weekday_weekend_analysis$is_weekend, "Weekend", "Weekday")
+
+print("\nWeekday vs Weekend Subway Ridership Recovery:")
+kable(weekday_weekend_analysis, format = "markdown")
+
+# Visualization for weekday vs weekend recovery
+plot2 <- ggplot(weekday_weekend_analysis, aes(x = as.factor(year), y = `% of Pre-Pandemic Level`, 
+                                              fill = is_weekend, group = is_weekend)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = paste0(round(`% of Pre-Pandemic Level`, 1), "%")), 
+            position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+  labs(
+    title = "Weekday vs Weekend Subway Ridership Recovery",
+    subtitle = "Percentage of pre-pandemic levels by year",
+    x = "Year",
+    y = "% of Pre-Pandemic Ridership",
+    fill = "Day Type",
+    caption = "Source: MTA Ridership Data"
+  ) +
+  scale_fill_manual(values = c("Weekday" = "steelblue", "Weekend" = "orange")) +
+  theme_minimal()
+
+print(plot2)
+
+# 3. REVENUE IMPACT: Calculate estimated fare revenue loss for subway only
+# Create helper function to determine fare for each date
+get_fare <- function(date) {
+  if (date >= as.Date("2023-08-20")) {
+    return(2.90)
+  } else {
+    return(2.75)
+  }
+
+# 3. REVENUE IMPACT: Calculate estimated fare revenue loss for subway only
+# Create helper function to determine fare for each date
+get_fare <- function(date) {
+  if (date >= as.Date("2023-08-20")) {
+    return(2.90)
+  } else {
+    return(2.75)
+  }
+}
+
+# Apply fare logic to each row
+daily_ridership$fare <- sapply(daily_ridership$Date, get_fare)
+
+# Reconstruct pre-pandemic ridership using the percentage column
+daily_ridership$pre_pandemic_subway_ridership <- 
+  daily_ridership$`Subways: Total Estimated Ridership` / 
+  daily_ridership$`Subways: % of Comparable Pre-Pandemic Day`
+
+# Calculate actual and counterfactual revenue for subway only
+daily_ridership$actual_revenue <- daily_ridership$`Subways: Total Estimated Ridership` * daily_ridership$fare
+daily_ridership$counterfactual_revenue <- daily_ridership$pre_pandemic_subway_ridership * daily_ridership$fare
+daily_ridership$revenue_loss <- daily_ridership$counterfactual_revenue - daily_ridership$actual_revenue
+
+# Aggregate by year
+revenue_summary <- daily_ridership %>%
+  filter(year <= 2023) %>%  # Filter to years through 2023
+  group_by(year) %>%
+  summarize(
+    `Actual Revenue (Million $)` = sum(actual_revenue) / 1000000,
+    `Expected Pre-Pandemic Revenue (Million $)` = sum(counterfactual_revenue) / 1000000,
+    `Revenue Loss (Million $)` = sum(revenue_loss) / 1000000,
+    `Daily Avg Loss (Million $)` = mean(revenue_loss) / 1000000
+  ) %>%
+  as.data.frame()
+
+# Format for better readability
+revenue_summary$`Actual Revenue (Million $)` <- round(revenue_summary$`Actual Revenue (Million $)`, 1)
+revenue_summary$`Expected Pre-Pandemic Revenue (Million $)` <- round(revenue_summary$`Expected Pre-Pandemic Revenue (Million $)`, 1)
+revenue_summary$`Revenue Loss (Million $)` <- round(revenue_summary$`Revenue Loss (Million $)`, 1)
+revenue_summary$`Daily Avg Loss (Million $)` <- round(revenue_summary$`Daily Avg Loss (Million $)`, 2)
+
+print("\nEstimated Yearly Subway Fare Revenue (in millions):")
+kable(revenue_summary, format = "markdown")
+
+# Visualization for revenue impact
+# Using tidyr instead of reshape2
+library(tidyr)
+
+# Create a long format dataframe for plotting
+revenue_long <- revenue_summary %>%
+  select(year, `Actual Revenue (Million $)`, `Revenue Loss (Million $)`) %>%
+  pivot_longer(cols = c(`Actual Revenue (Million $)`, `Revenue Loss (Million $)`),
+               names_to = "Revenue_Type", 
+               values_to = "Amount")
+
+plot3 <- ggplot(revenue_long, aes(x = as.factor(year), y = Amount, fill = Revenue_Type)) +
+  geom_bar(stat = "identity", position = position_stack()) +
+  geom_text(aes(label = paste0("$", Amount)), position = position_stack(vjust = 0.5), color = "white") +
+  labs(
+    title = "MTA Subway Revenue Loss Due to Ridership Decline",
+    subtitle = "Actual revenue vs. estimated loss compared to pre-pandemic levels",
+    x = "Year",
+    y = "Revenue (Million $)",
+    fill = "Revenue Type",
+    caption = "Source: MTA Ridership Data, Fare: $2.75 (2015-Aug 2023), $2.90 (Aug 2023-present)"
+  ) +
+  scale_fill_manual(values = c("Actual Revenue (Million $)" = "steelblue", 
+                               "Revenue Loss (Million $)" = "firebrick"),
+                    labels = c("Actual Revenue", "Revenue Loss")) +
+  theme_minimal()
+
+print(plot3)
+
+
+# 4. REMOTE WORK INDICATORS: Analyze time slot patterns
+# First, calculate yearly average by time slot for weekdays only
+weekday_time_slots <- subset(time_slot_analysis, is_weekday == "Weekday")
+weekday_time_slots$year <- format(weekday_time_slots$date, "%Y")
+
+time_slot_yearly <- weekday_time_slots %>%
+  filter(as.numeric(year) <= 2023) %>%  # Filter to years through 2023
+  group_by(year, time_slot) %>%
+  summarize(avg_ridership = mean(total_ridership)) %>%
+  as.data.frame()
+
+# Create pivot table for easier comparison using tidyr instead of reshape2
+time_slot_wide <- time_slot_yearly %>%
+  pivot_wider(names_from = time_slot, values_from = avg_ridership)
+
+# Calculate ratios (key indicators of remote work impact)
+time_slot_wide$`Morning Rush / Midday Ratio` <- 
+  time_slot_wide$`Morning Rush (6AM-10AM)` / time_slot_wide$`Midday (10AM-3PM)`
+time_slot_wide$`Evening Rush / Midday Ratio` <- 
+  time_slot_wide$`Evening Rush (3PM-7PM)` / time_slot_wide$`Midday (10AM-3PM)`
+
+# Round for display
+time_slot_wide$`Morning Rush (6AM-10AM)` <- round(time_slot_wide$`Morning Rush (6AM-10AM)`, 0)
+time_slot_wide$`Midday (10AM-3PM)` <- round(time_slot_wide$`Midday (10AM-3PM)`, 0)
+time_slot_wide$`Evening Rush (3PM-7PM)` <- round(time_slot_wide$`Evening Rush (3PM-7PM)`, 0)
+time_slot_wide$`Off-Hours (7PM-6AM)` <- round(time_slot_wide$`Off-Hours (7PM-6AM)`, 0)
+time_slot_wide$`Morning Rush / Midday Ratio` <- round(time_slot_wide$`Morning Rush / Midday Ratio`, 2)
+time_slot_wide$`Evening Rush / Midday Ratio` <- round(time_slot_wide$`Evening Rush / Midday Ratio`, 2)
+
+print("\nWeekday Time Slot Analysis (Remote Work Indicator):")
+kable(time_slot_wide, format = "markdown")
+
+# Visualization for time slot trends (remote work indicator)
+time_slot_long <- time_slot_yearly %>%
+  filter(time_slot %in% c("Morning Rush (6AM-10AM)", "Midday (10AM-3PM)", "Evening Rush (3PM-7PM)"))
+
+plot4 <- ggplot(time_slot_long, aes(x = year, y = avg_ridership/1000, color = time_slot, group = time_slot)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 3) +
+  labs(
+    title = "Changing Time-of-Day Ridership Patterns",
+    subtitle = "Decreasing peak/off-peak ratios indicate remote work impact",
+    x = "Year",
+    y = "Average Ridership (Thousands)",
+    color = "Time Slot",
+    caption = "Source: MTA Ridership Data"
+  ) +
+  scale_color_manual(values = c("Morning Rush (6AM-10AM)" = "firebrick", 
+                                "Midday (10AM-3PM)" = "steelblue",
+                                "Evening Rush (3PM-7PM)" = "darkgreen")) +
+  theme_minimal()
+
+print(plot4)
+
+
+# 6 Calculate the estimated impact specifically attributable to remote work
+# Compare weekday vs weekend recovery in 2023
+remote_work_impact <- daily_ridership %>%
+  filter(year == 2023) %>%
+  group_by(is_weekend) %>%
+  summarize(`% of Pre-Pandemic Level` = mean(`Subways: % of Comparable Pre-Pandemic Day`) * 100) %>%
+  as.data.frame()
+
+# Calculate the gap between weekday and weekend recovery
+weekend_recovery <- remote_work_impact$`% of Pre-Pandemic Level`[remote_work_impact$is_weekend == TRUE]
+weekday_recovery <- remote_work_impact$`% of Pre-Pandemic Level`[remote_work_impact$is_weekend == FALSE]
+recovery_gap <- weekend_recovery - weekday_recovery
+
+# Calculate the impact
+# If weekdays were recovering at same rate as weekends, what would the additional ridership be?
+avg_weekday_ridership_2023 <- mean(daily_ridership$`Subways: Total Estimated Ridership`[
+  daily_ridership$year == 2023 & daily_ridership$is_weekend == FALSE])
+
+avg_pre_pandemic_weekday <- avg_weekday_ridership_2023 / (weekday_recovery/100)
+potential_weekday_ridership <- avg_pre_pandemic_weekday * (weekend_recovery/100)
+riders_lost_to_remote_work <- potential_weekday_ridership - avg_weekday_ridership_2023
+
+# Calculate the revenue impact
+avg_fare_2023 <- mean(daily_ridership$fare[daily_ridership$year == 2023])
+daily_revenue_impact <- riders_lost_to_remote_work * avg_fare_2023
+annual_revenue_impact <- daily_revenue_impact * 250  # Assuming 250 weekdays per year
+
+# Create summary table
+remote_work_summary <- data.frame(
+  Metric = c("Weekday Recovery Rate (%)", "Weekend Recovery Rate (%)", 
+             "Recovery Gap (percentage points)", 
+             "Estimated Daily Riders Lost to Remote Work",
+             "Estimated Annual Revenue Impact from Remote Work ($M)"),
+  Value = c(round(weekday_recovery, 1), round(weekend_recovery, 1), 
+            round(recovery_gap, 1), 
+            round(riders_lost_to_remote_work, 0),
+            round(annual_revenue_impact/1000000, 1))
+)
+
+print("\nEstimated Impact Attributable to Remote Work (2023):")
+kable(remote_work_summary, format = "markdown")
+
+# Visualization for remote work impact
+# Create a pie chart showing the breakdown of ridership loss
+# Assume total loss = 100% - weekday recovery rate
+total_loss_percent <- 100 - weekday_recovery
+remote_work_percent <- (recovery_gap / total_loss_percent) * 100
+other_factors_percent <- 100 - remote_work_percent
+
+impact_data <- data.frame(
+  Factor = c("Remote Work", "Other Factors (Tourism, Health Concerns, etc.)"),
+  Percentage = c(remote_work_percent, other_factors_percent)
+)
+
+plot6 <- ggplot(impact_data, aes(x = "", y = Percentage, fill = Factor)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) +
+  geom_text(aes(label = paste0(round(Percentage), "%")), 
+            position = position_stack(vjust = 0.5)) +
+  labs(
+    title = "Estimated Factors Contributing to Subway Ridership Decline (2023)",
+    subtitle = paste0("Remote work accounts for approximately ", 
+                      round(remote_work_percent), "% of the total ridership decline"),
+    fill = "Factor",
+    caption = "Source: MTA Ridership Data, Analysis based on weekday/weekend recovery gap"
+  ) +
+  theme_void() +
+  scale_fill_manual(values = c("Remote Work" = "firebrick", 
+                               "Other Factors (Tourism, Health Concerns, etc.)" = "steelblue"))
+
+print(plot6)
