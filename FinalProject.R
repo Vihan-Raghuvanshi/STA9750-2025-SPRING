@@ -78,9 +78,8 @@ View(daily_ridership)
 # Cache the processed data
 saveRDS(daily_ridership, file.path("data", "finalproject", "processed_daily_data.rds"))
 
-################### Time series analysis of ridership trends
+## Time series analysis of ridership trends
 # Analyze subway ridership trends over time
-
 
 # Overall subway ridership over time
 ggplot(daily_ridership, aes(x = Date, y = `Subways: Total Estimated Ridership`)) +
@@ -108,7 +107,7 @@ ggplot(daily_ridership, aes(x = Date, y = `Subways: % of Comparable Pre-Pandemic
   theme_minimal() +
   scale_y_continuous(labels = scales::percent)
 
-########### Weekday VS Weekend Analysis (remote work indicator)
+## Weekday VS Weekend Analysis (remote work indicator)
 # Compare weekday and weekend recovery patterns
 weekday_weekend_analysis <- daily_ridership %>%
   group_by(day_of_week, year, month) %>%
@@ -134,7 +133,7 @@ ggplot(weekday_weekend_analysis,
   scale_y_continuous(labels = scales::percent)
 
 
-########## Revenue Impact Estimation:
+##Revenue Impact Estimation:
 # 4. Revenue Impact Estimation with Updated Fare Information
 
 # Define fare rates based on time periods
@@ -336,16 +335,6 @@ remote_work_attribution %>%
     "Remote Work Attribution %" = remote_work_percentage
   )
 
-# Load necessary packages
-library(dplyr)
-library(ggplot2)
-library(lubridate)
-library(scales)
-library(knitr)
-library(kableExtra)
-
-# Assuming fare_analysis, monthly_revenue_loss, remote_work_impact, 
-# remote_work_comparison, and other data frames are already created
 
 # Visualization for Section 4: Revenue Impact Estimation
 # 4.1: Plot monthly revenue loss over time
@@ -729,10 +718,6 @@ download_mta_ridership_data <- function() {
 # Call the function to download the data
 mta_metadata <- download_mta_ridership_data()
 
-####################
-library(dplyr)
-library(lubridate)
-library(readr)
 
 # Function to process a batch file and categorize by time slot
 process_batch_by_time <- function(batch_file) {
@@ -811,12 +796,6 @@ glimpse(time_slot_analysis)
 glimpse(daily_ridership)
 
 
-# Load required libraries
-library(knitr)
-library(ggplot2)
-library(dplyr)
-library(lubridate)
-library(scales)
 
 # 1. RIDERSHIP ANALYSIS: How has total MTA ridership changed from 2019 to 2023?
 # Create year and month columns for easier aggregation

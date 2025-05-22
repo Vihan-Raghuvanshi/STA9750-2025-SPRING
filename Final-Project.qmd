@@ -22,8 +22,7 @@ required_packages <- c(
   "dplyr", "tidyr", "stringr", "jsonlite", "httr", "purrr", "readr",
   "ggplot2", "lubridate", "scales", "ggpubr", "viridis", "DT", "crosstalk",
   "gridExtra", "cowplot", "plotly", "proxy", "igraph",
-  "patchwork", "ggforce", "knitr", "kableExtra", "data.table", "sf", "tigris", "waffle",
-  "ggridges", "viridis", "gganimate"
+  "patchwork", "ggforce", "knitr", "kableExtra", "data.table", "sf", "tigris", "waffle","ggridges", "viridis", "gganimate"
 )
 
 # Install missing packages with error handling
@@ -116,7 +115,6 @@ daily_ridership <- daily_ridership %>%
 # Load the time slot analysis data
 time_slot_analysis <- read_csv("data/finalproject/time_slot_analysis.csv", show_col_types = FALSE)
 
-
 ```
 ## **Executive Summary**
 **Financial Impact of Remote Work on MTA: NYC Subway Ridership**
@@ -182,9 +180,9 @@ These datasets are particularly valuable because they include the percentage com
 # 1. RIDERSHIP ANALYSIS: How has total MTA ridership changed from 2019 to 2023?
 # Load required packages
 library(dplyr)
-library(xts)       # For time series objects
-library(dygraphs)  # For interactive plots
-library(kableExtra) # For styled tables
+library(xts)      
+library(dygraphs)  
+library(kableExtra) 
 
 # Create year and month columns for easier aggregation
 daily_ridership$year_month <- format(daily_ridership$Date, "%Y-%m")
@@ -196,7 +194,7 @@ yearly_subway_ridership <- daily_ridership %>%
     `Avg Daily Ridership` = mean(`Subways: Total Estimated Ridership`),
     `% of Pre-Pandemic Level` = mean(`Subways: % of Comparable Pre-Pandemic Day`) * 100
   ) %>%
-  filter(year <= 2023) %>%  # Filter to years through 2023
+  filter(year <= 2023) %>% 
   as.data.frame()
 
 # Format for better readability
@@ -242,9 +240,6 @@ colnames(ridership_xts) <- c("Daily Ridership", "% of Pre-Pandemic")
 #| warning: false
 #| message: false
 
-# Your existing code up to the dygraph creation...
-# (all the data preparation code stays the same)
-
 # Create interactive dygraph AND assign it to a variable
 ridership_plot <- dygraph(ridership_xts, main = "NYC Subway Ridership Recovery (2019-2023)") %>%
   dySeries("Daily Ridership", label = "Daily Ridership", color = mta_blue, 
@@ -274,9 +269,6 @@ ridership_plot <- dygraph(ridership_xts, main = "NYC Subway Ridership Recovery (
 # Display the plot
 ridership_plot
 
-# Save the plot as HTML
-library(htmlwidgets)
-saveWidget(ridership_plot, "mta_ridership_interactive.html", selfcontained = TRUE)
 ```
 
 ## **Analysis 2: Weekday vs. Weekend Ridership Recovery**
@@ -289,14 +281,10 @@ saveWidget(ridership_plot, "mta_ridership_interactive.html", selfcontained = TRU
 #| warning: false
 #| message: false
 # 2. WEEKDAY VS WEEKEND ANALYSIS: How do weekday and weekend ridership recovery patterns differ?
-# Load required packages
-library(dplyr)
-library(ggplot2)
-library(kableExtra) # For styled tables
 
 # MTA colors for theming
-mta_blue <- "#0039A6"    # MTA subway blue
-mta_orange <- "#FF6319"  # MTA B, D, F, M lines
+mta_blue <- "#0039A6"    
+mta_orange <- "#FF6319" 
 
 # Create weekday vs weekend analysis
 weekday_weekend_analysis <- daily_ridership %>%
@@ -306,7 +294,7 @@ weekday_weekend_analysis <- daily_ridership %>%
     `% of Pre-Pandemic Level` = mean(`Subways: % of Comparable Pre-Pandemic Day`) * 100,
     .groups = "drop"  
   ) %>%
-  filter(year <= 2023) %>%  # Filter to years through 2023
+  filter(year <= 2023) %>% 
   as.data.frame()
 
 # Format for better readability
@@ -315,7 +303,6 @@ weekday_weekend_analysis$`% of Pre-Pandemic Level` <- round(weekday_weekend_anal
 weekday_weekend_analysis$is_weekend <- ifelse(weekday_weekend_analysis$is_weekend, "Weekend", "Weekday")
 
 # Display table with MTA theme
-
 library(kableExtra)
 
 kable(
@@ -331,11 +318,8 @@ kable(
   row_spec(0, background = mta_blue, color = "white", bold = TRUE) %>%
   column_spec(1:2, background = "#f8f8f8", bold = TRUE)
 
-# Visualization for weekday vs weekend recovery
-library(dplyr)
-library(ggplot2)
 
-# 1) Build the bar-data as before
+# 1) Build the bar-data 
 wd_we <- daily_ridership %>%
   mutate(is_weekend = ifelse(is_weekend, "Weekend", "Weekday")) %>%
   group_by(year, is_weekend) %>%
@@ -353,12 +337,12 @@ wd_we <- daily_ridership %>%
 
 max_pct <- max(wd_we$pct_pre)
 
-# 2) Extract one label per year (weekend row) and bump it outside the 100% ring
+# 2) Extract one label per year (weekend row) 
 year_labels <- wd_we %>%
   filter(is_weekend == "Weekend") %>%
   distinct(year, id, angle, hjust) %>%
   mutate(
-    y = max_pct + 20    # ← push it well beyond the outer ring
+    y = max_pct + 20
   )
 
 # 3) Plot
@@ -435,19 +419,12 @@ ggplot(wd_we, aes(x = factor(id), y = pct_pre, fill = is_weekend)) +
 #| warning: false
 #| message: false
 # 3. REVENUE IMPACT: Calculate estimated fare revenue loss for subway only
-library(dplyr)
-library(ggplot2)
-library(plotly)
-library(kableExtra)
-library(tidyr)
-library(scales)  # For better formatting
-library(lubridate) # For date handling
 
 # MTA colors for theming
-mta_blue <- "#0039A6"    # MTA subway blue
-mta_orange <- "#FF6319"  # MTA B, D, F, M lines
-mta_green <- "#00933C"   # MTA 4, 5, 6 lines
-mta_red <- "#EE352E"     # MTA 1, 2, 3 lines
+mta_blue <- "#0039A6"   
+mta_orange <- "#FF6319"  
+mta_green <- "#00933C"   
+mta_red <- "#EE352E"     
 
 # Create helper function to determine fare for each date
 get_fare <- function(date) {
@@ -473,7 +450,7 @@ daily_ridership$revenue_loss <- daily_ridership$counterfactual_revenue - daily_r
 
 # Aggregate by year for the table
 revenue_summary <- daily_ridership %>%
-  filter(year <= 2023) %>%  # Filter to years through 2023
+  filter(year <= 2023) %>% 
   group_by(year) %>%
   summarize(
     `Actual Revenue (Million $)` = sum(actual_revenue) / 1000000,
@@ -560,15 +537,15 @@ plot_data <- quarterly_revenue %>%
     short_label = paste0(substr(year, 3, 4), "Q", quarter)
   )
 
-# Create the interactive plot with significantly adjusted layout
-p <- plot_ly(height = 450, width = 600) %>%  # Further reduced width
+# Create the interactive plot 
+p <- plot_ly(height = 450, width = 600) %>%  
   # Add actual revenue (positive axis)
   add_bars(
     data = plot_data,  # Use all data points
     x = ~order_id, 
     y = ~actual_revenue,
     marker = list(color = mta_blue),
-    name = 'Actual',  # Shortened name
+    name = 'Actual',  
     hovertemplate = ~hover_actual
   ) %>%
   # Add expected revenue (negative axis)
@@ -577,7 +554,7 @@ p <- plot_ly(height = 450, width = 600) %>%  # Further reduced width
     x = ~order_id, 
     y = ~negative_expected,
     marker = list(color = mta_red),
-    name = 'Expected',  # Shortened name
+    name = 'Expected',  
     hovertemplate = ~hover_expected
   ) %>%
   # Add revenue loss as line
@@ -611,13 +588,13 @@ p <- plot_ly(height = 450, width = 600) %>%  # Further reduced width
     xaxis = list(
       title = "",
       tickvals = plot_data$order_id,
-      ticktext = plot_data$short_label,  # Use shortened quarter labels
-      tickangle = 90,  # Vertical labels to save space
-      tickfont = list(size = 8),  # Smaller font
+      ticktext = plot_data$short_label,  
+      tickangle = 90,  
+      tickfont = list(size = 8),  
       fixedrange = TRUE
     ),
     yaxis = list(
-      title = "Revenue ($M)",  # Shortened title
+      title = "Revenue ($M)", 
       zeroline = TRUE,
       zerolinewidth = 2,
       zerolinecolor = "#000000",
@@ -634,7 +611,7 @@ p <- plot_ly(height = 450, width = 600) %>%  # Further reduced width
       xanchor = "center",
       font = list(size = 9)
     ),
-    margin = list(t = 40, b = 65, l = 45, r = 20),  # Further reduced margins
+    margin = list(t = 40, b = 65, l = 45, r = 20),
     annotations = list(
       list(
         x = 0.5,
@@ -657,7 +634,7 @@ p <- plot_ly(height = 450, width = 600) %>%  # Further reduced width
 
 # Display the interactive plot
 p
-saveWidget(p, "mta_revenue_impact_interactive.html", selfcontained = TRUE)
+
 ```
 
 ## **Analysis 4: Time Slot Analysis (Remote Work Indicator)**
@@ -676,8 +653,8 @@ Notably, evening rush hours have recovered more strongly than morning rush hours
 
 # 4. REMOTE WORK INDICATORS: Analyze time slot patterns
 # Define MTA colors
-mta_blue <- "#0039A6"  # MTA Blue
-mta_yellow <- "#FCCC0A"  # MTA Yellow
+mta_blue <- "#0039A6"  
+mta_yellow <- "#FCCC0A"  
 
 # Calculate monthly average by time slot for weekdays only
 weekday_time_slots <- subset(time_slot_analysis, is_weekday == "Weekday")
@@ -688,7 +665,7 @@ weekday_time_slots$year_month <- format(weekday_time_slots$date, "%Y-%m")
 
 # Monthly time slot analysis
 time_slot_monthly <- weekday_time_slots %>%
-  filter(as.numeric(year) <= 2023) %>%  # Filter to years through 2023
+  filter(as.numeric(year) <= 2023) %>%  
   group_by(year, month, month_name, year_month, time_slot) %>%
   summarize(avg_ridership = mean(total_ridership), .groups = 'drop') %>%
   as.data.frame()
@@ -778,9 +755,6 @@ collapsible_table
 #| warning: false
 #| message: false
 # Load required libraries
-library(dplyr)
-library(tidyr)
-library(plotly)
 library(RColorBrewer)
 
 # Create time_slot_yearly from weekday_time_slots
@@ -813,7 +787,7 @@ colors <- c("Morning Rush (6AM-10AM)" = "darkgreen",
             "Evening Rush (3PM-7PM)" = "firebrick")
 
 # Create interactive plot with plotly - ADJUSTED DIMENSIONS
-plot_interactive <- plot_ly(height = 550, width = 650) %>%  # Reduced width to fit better
+plot_interactive <- plot_ly(height = 550, width = 650) %>%
   # Main ridership lines
   add_trace(data = time_slot_long, 
             x = ~year, y = ~avg_ridership/1000, 
@@ -844,7 +818,7 @@ plot_interactive <- plot_ly(height = 550, width = 650) %>%  # Reduced width to f
             yaxis = "y2",
             hoverinfo = 'text',
             text = ~paste("Peak/Off-Peak Ratio:", round(avg_peak_ratio, 2))) %>%
-  # Layout with dual y-axes and other enhancements - ADJUSTED MARGINS
+  # Layout with dual y-axes and other enhancements 
   layout(
     title = "",  # Removed title to save space
     xaxis = list(
@@ -852,14 +826,14 @@ plot_interactive <- plot_ly(height = 550, width = 650) %>%  # Reduced width to f
       showgrid = FALSE,
       range = c(2019.5, 2023.5),
       tickvals = c(2020, 2021, 2022, 2023),
-      fixedrange = TRUE  # Fix X-axis range to prevent zooming
+      fixedrange = TRUE 
     ),
     yaxis = list(
       title = "Average Ridership (Thousands)", 
       showgrid = TRUE, 
       gridcolor = 'rgba(200,200,200,0.2)',
-      fixedrange = TRUE,  # Fix Y-axis range to prevent zooming
-      automargin = TRUE   # Ensure y-axis title fits
+      fixedrange = TRUE,  
+      automargin = TRUE   
     ),
     yaxis2 = list(
       title = "Peak/Off-Peak Ratio",
@@ -867,8 +841,8 @@ plot_interactive <- plot_ly(height = 550, width = 650) %>%  # Reduced width to f
       side = "right",
       showgrid = FALSE,
       range = c(0, 1.4),  
-      fixedrange = TRUE,  # Fix Y2-axis range to prevent zooming
-      automargin = TRUE   # Ensure y-axis title fits
+      fixedrange = TRUE,  
+      automargin = TRUE  
     ),
     # REDUCED MARGINS to fit in frame
     margin = list(l = 60, r = 60, t = 50, b = 60),
@@ -895,8 +869,8 @@ plot_interactive <- plot_ly(height = 550, width = 650) %>%  # Reduced width to f
       list(
         type = "buttons",
         direction = "right",
-        x = 0.5,  # Center-aligned
-        y = -0.15,  # Moved up closer to the graph
+        x = 0.5,  
+        y = -0.15,  
         xanchor = "center",
         buttons = list(
           list(method = "update",
@@ -926,7 +900,6 @@ plot_interactive <- plot_ly(height = 550, width = 650) %>%  # Reduced width to f
         )
       )
     ),
-    # Make sure plot is self-contained
     autosize = FALSE,
     dragmode = FALSE,
     # Add space-saving font settings
@@ -934,11 +907,11 @@ plot_interactive <- plot_ly(height = 550, width = 650) %>%  # Reduced width to f
   ) %>%
   # Configure to remove all toolbar options
   config(
-    displayModeBar = FALSE,  # Hide the mode bar completely
-    responsive = FALSE       # Prevent responsive resizing
+    displayModeBar = FALSE, 
+    responsive = FALSE      
   )
 
-# Add percentage change annotations - with smaller font
+# Add percentage change annotations
 years <- c("2020", "2021", "2022", "2023")
 for (slot in unique(time_slot_long$time_slot)) {
   # Only add the annotation for 2023 (last year)
@@ -955,26 +928,24 @@ for (slot in unique(time_slot_long$time_slot)) {
   
   percent_change <- ((latest_data$avg_ridership / baseline_value) - 1) * 100
   
-  # Only add annotation for the latest year - with smaller, more compact text
+  # Only add annotation for the latest year -
   if(nrow(latest_data) > 0) {
     plot_interactive <- plot_interactive %>%
       add_annotations(
         x = 2023,
         y = latest_data$avg_ridership/1000,
-        text = paste0(round(percent_change, 0), "%"),  # Shortened text
+        text = paste0(round(percent_change, 0), "%"),  
         showarrow = TRUE,
         arrowhead = 0,
         ax = 25,  # Reduced arrow length
         ay = 0,
-        font = list(size = 9)  # Smaller font
+        font = list(size = 9) 
       )
   }
 }
 
 # Display the interactive plot
 plot_interactive
-
-saveWidget(plot_interactive, "mta_time_slot_ridership_interactive.html", selfcontained = TRUE)
 ```
 
 ## **Focus on the BIG Question**
